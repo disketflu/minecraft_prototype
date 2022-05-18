@@ -1,0 +1,997 @@
+{
+	"canvas": {
+		"clear_color": true,
+		"clear_z": true,
+		"color": [
+			0,
+			0,
+			0,
+			255
+		]
+	},
+	"environment": {
+		"ambient": [
+			0,
+			0,
+			0,
+			0
+		],
+		"brdf_map": "core/pbr/brdf.dds",
+		"current_camera": null,
+		"fog_color": [
+			15,
+			13,
+			26,
+			0
+		],
+		"fog_far": 80.0,
+		"fog_near": 10.0,
+		"probe": {
+			"irradiance_map": "satara_night_no_lamps_4k.hdr.irradiance",
+			"parallax": 0.0,
+			"pos": [
+				0.0,
+				0.0,
+				0.0
+			],
+			"radiance_map": "satara_night_no_lamps_4k.hdr.radiance",
+			"rot": [
+				0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"type": "sphere"
+		}
+	},
+	"instances": [
+		{
+			"name": "FoodcanOpen/FoodcanOpen.scn"
+		},
+		{
+			"name": "FoodcanOpen/FoodcanOpen.scn"
+		},
+		{
+			"name": "FoodcanOpen/FoodcanOpen.scn"
+		},
+		{
+			"name": "PineTree/PineTree.scn"
+		},
+		{
+			"name": "PineTree/PineTree.scn"
+		},
+		{
+			"name": "PineTree/PineTree.scn"
+		},
+		{
+			"name": "PineTree/PineTree.scn"
+		},
+		{
+			"name": "PineTree/PineTree.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "OakTree/OakTree.scn"
+		},
+		{
+			"name": "OakTree/OakTree.scn"
+		},
+		{
+			"name": "OakTree/OakTree.scn"
+		},
+		{
+			"name": "Shelter/Shelter.scn"
+		},
+		{
+			"name": "SleepingBag/SleepingBag.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "DirtCliff001/DirtCliff001.scn"
+		},
+		{
+			"name": "Wolf/Wolf_with_Animations.scn"
+		},
+		{
+			"name": "Flashlight/Flashlight.scn"
+		}
+	],
+	"key_values": null,
+	"nodes": [
+		{
+			"components": [
+				0,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 0,
+			"instance": 22,
+			"name": "Wolf_with_Animations"
+		},
+		{
+			"components": [
+				1,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 1,
+			"instance": 23,
+			"name": "Flashlight"
+		},
+		{
+			"components": [
+				2,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 2,
+			"instance": 21,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				3,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 3,
+			"instance": 20,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				4,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 4,
+			"instance": 19,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				9,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 5,
+			"instance": 18,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				5,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 6,
+			"instance": 17,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				6,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 7,
+			"instance": 16,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				7,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 8,
+			"instance": 15,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				8,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 9,
+			"instance": 14,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				10,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 10,
+			"instance": 12,
+			"name": "Shelter"
+		},
+		{
+			"components": [
+				11,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 11,
+			"instance": 13,
+			"name": "SleepingBag"
+		},
+		{
+			"components": [
+				12,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 12,
+			"instance": 11,
+			"name": "OakTree"
+		},
+		{
+			"components": [
+				23,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 13,
+			"instance": 10,
+			"name": "OakTree"
+		},
+		{
+			"components": [
+				13,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 14,
+			"instance": 9,
+			"name": "OakTree"
+		},
+		{
+			"components": [
+				14,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 15,
+			"instance": 8,
+			"name": "DirtCliff001"
+		},
+		{
+			"components": [
+				15,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 16,
+			"instance": 7,
+			"name": "PineTree"
+		},
+		{
+			"components": [
+				16,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 17,
+			"instance": 6,
+			"name": "PineTree"
+		},
+		{
+			"components": [
+				17,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 18,
+			"instance": 5,
+			"name": "PineTree"
+		},
+		{
+			"components": [
+				18,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 19,
+			"instance": 4,
+			"name": "PineTree"
+		},
+		{
+			"components": [
+				19,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 20,
+			"instance": 3,
+			"name": "PineTree"
+		},
+		{
+			"components": [
+				20,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 21,
+			"instance": 2,
+			"name": "FoodcanOpen"
+		},
+		{
+			"components": [
+				21,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 22,
+			"instance": 1,
+			"name": "FoodcanOpen"
+		},
+		{
+			"components": [
+				22,
+				4294967295,
+				4294967295,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 23,
+			"instance": 0,
+			"name": "FoodcanOpen"
+		},
+		{
+			"components": [
+				24,
+				4294967295,
+				0,
+				4294967295,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 25,
+			"name": "skybox_40"
+		}
+	],
+	"objects": [
+		{
+			"bones": [],
+			"material_infos": [
+				{
+					"name": ""
+				}
+			],
+			"materials": [
+				{
+					"blend_mode": "opaque",
+					"depth_test": "less",
+					"face_culling": "ccw",
+					"flags": [],
+					"program": "skydome/texture.hps",
+					"textures": [
+						{
+							"name": "uBaseOpacityMap",
+							"stage": 0
+						},
+						{
+							"name": "uDiffuseMap",
+							"path": "satara_night_no_lamps_4k.hdr",
+							"stage": 0
+						},
+						{
+							"name": "uSelfMap",
+							"path": "satara_night_no_lamps_4k.hdr",
+							"stage": 4
+						}
+					],
+					"values": [
+						{
+							"name": "uBaseOpacityColor",
+							"type": "vec4",
+							"value": [
+								0.75,
+								0.75,
+								0.75,
+								1.0
+							]
+						},
+						{
+							"name": "uDiffuseColor",
+							"type": "vec4",
+							"value": [
+								0.699999988079071,
+								0.699999988079071,
+								0.699999988079071,
+								1.0
+							]
+						},
+						{
+							"name": "uOcclusionRoughnessMetalnessColor",
+							"type": "vec4",
+							"value": [
+								0.0,
+								0.5,
+								0.10000000149011612,
+								1.0
+							]
+						},
+						{
+							"name": "uSelfColor",
+							"type": "vec4",
+							"value": [
+								0.0,
+								0.0,
+								0.0,
+								-1.0
+							]
+						},
+						{
+							"name": "uSpecularColor",
+							"type": "vec4",
+							"value": [
+								0.699999988079071,
+								0.699999988079071,
+								0.699999988079071,
+								0.10000000149011612
+							]
+						}
+					],
+					"write_a": true,
+					"write_b": true,
+					"write_g": true,
+					"write_r": true,
+					"write_z": true
+				}
+			],
+			"name": "skydome/skybox_40.geo"
+		}
+	],
+	"transforms": [
+		{
+			"parent": null,
+			"pos": [
+				0.8017664551734924,
+				0.0,
+				0.0
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				0.4649568200111389,
+				0.0,
+				0.0
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.255090713500977,
+				0.0,
+				4.158402442932129
+			],
+			"rot": [
+				-0.0,
+				-89.0691146850586,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				6.8222222328186035,
+				0.0,
+				-10.541970252990723
+			],
+			"rot": [
+				-0.0,
+				151.17503356933594,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				10.0048828125,
+				0.0,
+				0.0
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				-5.825090408325195,
+				0.0,
+				-6.655965328216553
+			],
+			"rot": [
+				-0.0,
+				140.44114685058594,
+				0.0
+			],
+			"scl": [
+				1.0000004768371582,
+				1.0,
+				1.0000004768371582
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				-0.7065719366073608,
+				0.0,
+				4.255270004272461
+			],
+			"rot": [
+				-0.0,
+				-89.0691146850586,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				0.377416729927063,
+				0.0,
+				-8.660069465637207
+			],
+			"rot": [
+				-0.0,
+				69.10072326660156,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				11.845867156982422,
+				0.0,
+				-7.413823127746582
+			],
+			"rot": [
+				-0.0,
+				-31.661439895629883,
+				0.0
+			],
+			"scl": [
+				0.9999996423721313,
+				1.0,
+				0.9999996423721313
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				-7.327408790588379,
+				0.0,
+				-0.18487700819969177
+			],
+			"rot": [
+				-0.0,
+				-150.48284912109375,
+				0.0
+			],
+			"scl": [
+				1.000000238418579,
+				1.0,
+				1.000000238418579
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.902364730834961,
+				-0.05407094955444336,
+				1.067309856414795
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.9551591873168945,
+				-0.03311075270175934,
+				1.4096699953079224
+			],
+			"rot": [
+				-0.0,
+				-91.1300277709961,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				0.0,
+				-0.13070523738861084,
+				-2.8857381343841553
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				2.8680419921875,
+				-0.13070523738861084,
+				-4.213715076446533
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				11.202607154846191,
+				0.0,
+				-11.565452575683594
+			],
+			"rot": [
+				-0.0,
+				64.42817687988281,
+				0.0
+			],
+			"scl": [
+				1.0000001192092896,
+				1.0,
+				1.0000001192092896
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.565290451049805,
+				-0.3034660816192627,
+				-2.9285500049591064
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				7.0338921546936035,
+				-0.3034660816192627,
+				-5.3598504066467285
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				-3.7203173637390137,
+				-0.3034660816192627,
+				-1.8333256244659424
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				-1.3807373046875,
+				-0.3034660816192627,
+				0.5148773193359375
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				-2.8035542964935303,
+				-0.3034660816192627,
+				-4.09002685546875
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.413179397583008,
+				-0.042122162878513336,
+				0.9584650993347168
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.512819290161133,
+				-0.042122162878513336,
+				0.914230227470398
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				5.512819290161133,
+				-0.042122162878513336,
+				1.0329763889312744
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				4.027411937713623,
+				-0.13070523738861084,
+				-0.6293586492538452
+			],
+			"rot": [
+				-0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"parent": null,
+			"pos": [
+				0.0,
+				0.0,
+				0.0
+			],
+			"rot": [
+				0.0,
+				0.0,
+				0.0
+			],
+			"scl": [
+				0.019999999552965164,
+				0.019999999552965164,
+				0.019999999552965164
+			]
+		}
+	]
+}
