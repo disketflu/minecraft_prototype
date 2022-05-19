@@ -1,8 +1,9 @@
 # Draw models without a pipeline
 
+from distutils.command.build import build
 import harfang as hg
 import random
-from math import cos, sin, pi
+from math import cos, sin, pi, floor, ceil
 
 hg.InputInit()
 hg.WindowSystemInit()
@@ -20,58 +21,43 @@ ground_mdl = hg.CreatePlaneModel(vtx_layout, 5, 5, 1, 1)
 shader = hg.LoadProgramFromFile('resources_compiled/shaders/mdl')
 pos_rgb = hg.LoadProgramFromFile('resources_compiled/shaders/pos_rgb')
 
-
-def generateworldmodel(chunk_amount, chunk_size, vtx_layout):
-	world = []
-	for x in range(chunk_amount):
-		for y in range(chunk_amount):
-			world.append([hg.Vec2(x * chunk_size, y * chunk_size), buildmodel(vtx_layout, generatechunk(chunk_size, x, y), chunk_size)])
-	return world
-
-
-def generatechunk(chunk_size, xindex, yindex):
-	realx = xindex + 1
-	realy = yindex + 1
+def createworld(chunk_amount, chunk_size):
 	cubes_positions = []
-	for x in range(chunk_size):
+	for x in range(chunk_size * chunk_amount):
 		cubes_positions.append([])
-		for y in range(chunk_size):
+		for y in range(chunk_size * chunk_amount):
 			cubes_positions[x].append([])
-			for z in range(chunk_size):
-				# v = cos((x * realx) * pi / (chunk_size * realx)) + sin((y * realy) * 4 * pi / (chunk_size * realy))# + cos(z * 3 * pi / chunk_size)
-				v = cos(x * pi / chunk_size) + sin(y * 4 * pi / chunk_size)# + cos(z * 3 * pi / chunk_size)
+			for z in range(chunk_size * chunk_amount):
+				v = cos(x * 4 * pi / (chunk_size * chunk_amount)) + cos(z * pi / (chunk_size * chunk_amount)) + sin(y * 2 * pi / (chunk_size * chunk_amount)) 
 				if v > 0:
 					cubes_positions[x][y].append([False])
 				else:
 					cubes_positions[x][y].append([True])
 	return cubes_positions
 
-
-def buildmodel(vtx_layout, cubes_positions, chunk_size):
+def buildmodel(vtx_layout, cubes_positions, chunk_size, chunk_pos):
 	mdl_builder = hg.ModelBuilder()
-
-	# -Z
-	for x in range(chunk_size):
-		for y in range(chunk_size):
-			for z in range(chunk_size):
-				position = hg.Vec3(x, y, z)
+	for x in range(int(chunk_pos.x), int(chunk_pos.x + chunk_size)):
+		for y in range(int(chunk_pos.y), int(chunk_pos.y + chunk_size)):
+			for z in range(int(chunk_pos.z), int(chunk_pos.z + chunk_size)):
+				position = hg.Vec3(x - chunk_pos.x, y - chunk_pos.y, z - chunk_pos.z)
 				should_draw = cubes_positions[x][y][z][0]
 
 				should_draw_xpositive = False
 				should_draw_xnegative = False
-				if x > 0 and x < chunk_size - 1:
+				if x > 0 and x < len(cubes_positions) - 1:
 					should_draw_xpositive = cubes_positions[x + 1][y][z][0]
 					should_draw_xnegative = cubes_positions[x - 1][y][z][0]
 
 				should_draw_ypositive = False
 				should_draw_ynegative = False
-				if y > 0 and y < chunk_size - 1:
+				if y > 0 and y < len(cubes_positions) - 1:
 					should_draw_ypositive = cubes_positions[x][y + 1][z][0]
 					should_draw_ynegative = cubes_positions[x][y - 1][z][0]
 
 				should_draw_zpositive = False
 				should_draw_znegative = False
-				if z > 0 and z < chunk_size - 1:
+				if z > 0 and z < len(cubes_positions) - 1:
 					should_draw_zpositive = cubes_positions[x][y][z + 1][0]
 					should_draw_znegative = cubes_positions[x][y][z - 1][0]
 
@@ -280,10 +266,68 @@ def buildmodel(vtx_layout, cubes_positions, chunk_size):
 	mdl = mdl_builder.MakeModel(vtx_layout)
 	return mdl
 
-world = generateworldmodel(5, 20, vtx_layout)
+def findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount):
+	appropriatechunk = None
+	chunk_x = x
+	chunk_y = y
+	chunk_z = z
 
-# fonction qui prend world en param, et position vec3, pour chaque chun
-# liste de chunk, fonction qui génère le chunk en passant le monde ainsi que l'emplacement du chunk
+	rounded_x = round(x/chunk_size)*chunk_size
+	if rounded_x - x > 0:
+		chunk_x = rounded_x - chunk_size
+	elif rounded_x - x < 0:
+		chunk_x = rounded_x
+
+	rounded_y = round(y/chunk_size)*chunk_size
+	if rounded_y - y > 0:
+		chunk_y = rounded_y - chunk_size
+	elif rounded_y - y < 0:
+		chunk_y = rounded_y
+
+	rounded_z = round(z/chunk_size)*chunk_size
+	if rounded_z - z > 0:
+		chunk_z = rounded_z - chunk_size
+	elif rounded_z - z < 0:
+		chunk_z = rounded_z
+
+	for chunk in chunks:
+		if chunk[2] == hg.Vec3(chunk_x, chunk_y, chunk_z):
+			appropriatechunk = chunk
+
+	if appropriatechunk == None:
+		print("debug chunk finder :")
+		print(x, y, z, "x y z")
+		print(chunk_x, chunk_y, chunk_z, " chunk x y z")
+		print(rounded_x, rounded_y, rounded_z, " rounded x y z \n")
+
+	return appropriatechunk
+	
+
+def deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size):
+	delete = random.uniform(0, 30)
+	if delete < 2:
+		random_x = random.randint(0, chunk_amount * chunk_size - 1)
+		random_y = random.randint(0, chunk_amount * chunk_size - 1)
+		random_z = random.randint(0, chunk_amount * chunk_size - 1)
+		chunktoreload = findchunkfromcoordinates(random_x, random_y, random_z, chunks, chunk_size, chunk_amount)
+		if chunktoreload != None:
+			world[random_x][random_y][random_z][0] = False
+			mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
+			chunks[chunktoreload[0]][1] = mdl
+
+	
+
+chunk_size = 5
+chunk_amount = 5
+chunks = []
+world = createworld(chunk_amount, chunk_size)
+chunk_generator_index = 0
+for curchunk_x in range(chunk_amount):
+	for curchunk_y in range(chunk_amount):
+		for curchunk_z in range(chunk_amount):
+			mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size))
+			chunks.append([chunk_generator_index, mdl, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size)])
+			chunk_generator_index += 1
 
 # setup scene
 scene = hg.Scene()
@@ -324,8 +368,10 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 
 	hg.SetViewPerspective(0, 0, 0, res_x, res_y, cam.GetTransform().GetWorld())
 
-	for chunk in world:
-		hg.DrawModel(0, chunk[1], shader, [], [], hg.TransformationMat4(hg.Vec3(chunk[0].x, 0.5, chunk[0].y), hg.Vec3(angle, angle, angle)))
+	deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size)
+
+	for chunk in chunks:
+		hg.DrawModel(0, chunk[1], shader, [], [], hg.TransformationMat4(chunk[2], hg.Vec3(angle, angle, angle)))
 
 	# vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
 
