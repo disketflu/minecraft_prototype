@@ -290,9 +290,8 @@ def findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount):
 	elif rounded_z - z < 0:
 		chunk_z = rounded_z
 
-	for chunk in chunks:
-		if chunk[2] == hg.Vec3(chunk_x, chunk_y, chunk_z):
-			appropriatechunk = chunk
+	if chunks[int(chunk_x / chunk_amount)][int(chunk_y  / chunk_amount)][int(chunk_z  / chunk_amount)][2] == hg.Vec3(chunk_x, chunk_y, chunk_z):
+		appropriatechunk = chunks[int(chunk_x / chunk_amount)][int(chunk_y  / chunk_amount)][int(chunk_z  / chunk_amount)]
 
 	if appropriatechunk == None:
 		print("debug chunk finder :")
@@ -313,21 +312,29 @@ def deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size):
 		if chunktoreload != None:
 			world[random_x][random_y][random_z][0] = False
 			mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
-			chunks[chunktoreload[0]][1] = mdl
+			chunk_x = chunktoreload[2].x
+			chunk_y = chunktoreload[2].y
+			chunk_z = chunktoreload[2].z
+			chunks[int(chunk_x / chunk_amount)][int(chunk_y  / chunk_amount)][int(chunk_z  / chunk_amount)][1] = mdl
 
-	
+def generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_index):
+	chunks = []
+	for curchunk_x in range(chunk_amount):
+		chunks.append([])
+		for curchunk_y in range(chunk_amount):
+			chunks[curchunk_x].append([])
+			for curchunk_z in range(chunk_amount):
+				mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size))
+				chunks[curchunk_x][curchunk_y].append([chunk_index, mdl, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size)])
+				chunk_index += 1
 
-chunk_size = 5
-chunk_amount = 5
-chunks = []
-world = createworld(chunk_amount, chunk_size)
+	return chunks
+
+chunk_size = 10
+chunk_amount = 10
 chunk_generator_index = 0
-for curchunk_x in range(chunk_amount):
-	for curchunk_y in range(chunk_amount):
-		for curchunk_z in range(chunk_amount):
-			mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size))
-			chunks.append([chunk_generator_index, mdl, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size)])
-			chunk_generator_index += 1
+world = createworld(chunk_amount, chunk_size)
+chunks = generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_generator_index)
 
 # setup scene
 scene = hg.Scene()
@@ -368,10 +375,12 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 
 	hg.SetViewPerspective(0, 0, 0, res_x, res_y, cam.GetTransform().GetWorld())
 
-	deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size)
+	# deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size)
 
-	for chunk in chunks:
-		hg.DrawModel(0, chunk[1], shader, [], [], hg.TransformationMat4(chunk[2], hg.Vec3(angle, angle, angle)))
+	for curchunk_x in range(chunk_amount):
+		for curchunk_y in range(chunk_amount):
+			for curchunk_z in range(chunk_amount):
+				hg.DrawModel(0, chunks[curchunk_x][curchunk_y][curchunk_z][1], shader, [], [], hg.TransformationMat4(chunks[curchunk_x][curchunk_y][curchunk_z][2], hg.Vec3(angle, angle, angle)))
 
 	# vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
 
