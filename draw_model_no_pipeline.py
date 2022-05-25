@@ -267,6 +267,14 @@ def buildmodel(vtx_layout, cubes_positions, chunk_size, chunk_pos):
 	return mdl
 
 def findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount):
+	# start sanity checks
+	if x < 0 or y < 0 or z < 0:
+		return None
+
+	if x > chunk_size * chunk_amount - 1 or y > chunk_size * chunk_amount - 1 or z > chunk_size * chunk_amount - 1:
+		return None
+	# end sanity checks
+		
 	appropriatechunk = None
 	chunk_x = x
 	chunk_y = y
@@ -290,8 +298,8 @@ def findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount):
 	elif rounded_z - z < 0:
 		chunk_z = rounded_z
 
-	if chunks[int(chunk_x / chunk_amount)][int(chunk_y  / chunk_amount)][int(chunk_z  / chunk_amount)][2] == hg.Vec3(chunk_x, chunk_y, chunk_z):
-		appropriatechunk = chunks[int(chunk_x / chunk_amount)][int(chunk_y  / chunk_amount)][int(chunk_z  / chunk_amount)]
+	if chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][2] == hg.Vec3(chunk_x, chunk_y, chunk_z):
+		appropriatechunk = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)]
 
 	if appropriatechunk == None:
 		print("debug chunk finder :")
@@ -317,6 +325,16 @@ def deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size):
 			chunk_z = chunktoreload[2].z
 			chunks[int(chunk_x / chunk_amount)][int(chunk_y  / chunk_amount)][int(chunk_z  / chunk_amount)][1] = mdl
 
+def deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
+	chunktoreload = findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount)
+	if chunktoreload != None:
+		world[x][y][z][0] = False
+		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
+		chunk_x = chunktoreload[2].x
+		chunk_y = chunktoreload[2].y
+		chunk_z = chunktoreload[2].z
+		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
+
 def generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_index):
 	chunks = []
 	for curchunk_x in range(chunk_amount):
@@ -331,7 +349,7 @@ def generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_index):
 	return chunks
 
 chunk_size = 10
-chunk_amount = 10
+chunk_amount = 8
 chunk_generator_index = 0
 world = createworld(chunk_amount, chunk_size)
 chunks = generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_generator_index)
@@ -381,6 +399,11 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 		for curchunk_y in range(chunk_amount):
 			for curchunk_z in range(chunk_amount):
 				hg.DrawModel(0, chunks[curchunk_x][curchunk_y][curchunk_z][1], shader, [], [], hg.TransformationMat4(chunks[curchunk_x][curchunk_y][curchunk_z][2], hg.Vec3(angle, angle, angle)))
+
+	if keyboard.Pressed(hg.K_Space):
+		rayp0 = cam.GetTransform().GetPos()
+		rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 2
+		deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, round(rayp1.x), round(rayp1.y), round(rayp1.z))
 
 	# vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
 
