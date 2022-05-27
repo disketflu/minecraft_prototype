@@ -18,6 +18,7 @@ res = hg.PipelineResources()
 
 # vertex layout and models
 vtx_layout = hg.VertexLayoutPosFloatNormUInt8()
+vtx_layout_lines = hg.VertexLayoutPosFloatColorUInt8()
 
 cube_mdl = hg.CreateCubeModel(vtx_layout, 1, 1, 1)
 ground_mdl = hg.CreatePlaneModel(vtx_layout, 5, 5, 1, 1)
@@ -28,7 +29,7 @@ pos_rgb = hg.LoadProgramFromFile('resources_compiled/shaders/pos_rgb')
 # create materials
 prg_ref = hg.LoadPipelineProgramRefFromFile('resources_compiled/core/shader/pbr.hps', res, hg.GetForwardPipelineInfo())
 
-mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(255, 255, 56), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
+mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(50, 255, 56), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
 
 def createworld(chunk_amount, chunk_size):
 	cubes_positions = []
@@ -342,6 +343,22 @@ def deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 		chunk_x = chunktoreload[2].x
 		chunk_y = chunktoreload[2].y
 		chunk_z = chunktoreload[2].z
+		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
+		res.DestroyModel(mdl_ref)
+		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
+		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
+		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
+
+def addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
+	chunktoreload = findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount)
+	if chunktoreload != None:
+		world[x][y][z][0] = True
+		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
+		chunk_x = chunktoreload[2].x
+		chunk_y = chunktoreload[2].y
+		chunk_z = chunktoreload[2].z
+		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
+		res.DestroyModel(mdl_ref)
 		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
 		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
 		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
@@ -359,6 +376,47 @@ def generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_index):
 				chunk_index += 1
 				queue.append([curchunk_x, curchunk_y, curchunk_z])
 	return chunks, queue
+
+def show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb):
+	raylist = []
+
+	rayp0 = cam.GetTransform().GetPos()
+	rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 3
+	vtx = hg.Vertices(vtx_layout_lines, 4)
+
+	floored_x = round(rayp1.x) - 0.5
+	floored_y = round(rayp1.y) - 0.5
+	floored_z = round(rayp1.z) - 0.5
+	ceiled_x = floored_x + 1
+	ceiled_y = floored_y + 1
+	ceiled_z = floored_z + 1
+
+	corner_0 = hg.Vec3(ceiled_x, floored_y, ceiled_z)
+	corner_1 = hg.Vec3(floored_x, floored_y, ceiled_z)
+	corner_2 = hg.Vec3(floored_x, floored_y, floored_z)
+	corner_3 = hg.Vec3(ceiled_x, floored_y, floored_z)
+	corner_4 = hg.Vec3(ceiled_x, ceiled_y, ceiled_z)
+	corner_5 = hg.Vec3(floored_x, ceiled_y, ceiled_z)
+	corner_6 = hg.Vec3(floored_x, ceiled_y, floored_z)
+	corner_7 = hg.Vec3(ceiled_x, ceiled_y, floored_z)
+	raylist.append([corner_0, corner_1])
+	raylist.append([corner_1, corner_2])
+	raylist.append([corner_2, corner_3])
+	raylist.append([corner_3, corner_0])
+	raylist.append([corner_4, corner_5])
+	raylist.append([corner_5, corner_6])
+	raylist.append([corner_6, corner_7])
+	raylist.append([corner_7, corner_4])
+	raylist.append([corner_0, corner_4])
+	raylist.append([corner_1, corner_5])
+	raylist.append([corner_2, corner_6])
+	raylist.append([corner_3, corner_7])
+
+	for ray in raylist:
+		vtx = hg.Vertices(vtx_layout_lines, 2)
+		vtx.Begin(0).SetPos(ray[0]).SetColor0(hg.Color.Green).End()
+		vtx.Begin(1).SetPos(ray[1]).SetColor0(hg.Color.Green).End()
+		hg.DrawLines(vid_scene_opaque, vtx, pos_rgb)
 
 chunk_size = 10
 chunk_amount = 10
@@ -395,8 +453,6 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	mouse.Update()
 	dt = hg.TickClock()
 
-	# angle = angle + hg.time_to_sec_f(dt)
-
 	hg.FpsController(keyboard, mouse, cam_pos, cam_rot,
 					 20 if keyboard.Down(hg.K_LShift) else 8, dt)
 
@@ -404,10 +460,8 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	cam.GetTransform().SetRot(cam_rot)
 	scene.Update(dt)
 
-	hg.SetViewPerspective(0, 0, 0, res_x, res_y, cam.GetTransform().GetWorld())
-
 	# deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size)
-	
+
 	if chunk_index < len(queue):
 		mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
 		mdl_ref = res.AddModel(str(chunk_index), mdl)
@@ -417,19 +471,19 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 
 	if keyboard.Pressed(hg.K_Space):
 		rayp0 = cam.GetTransform().GetPos()
-		rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 2
+		rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 3
 		deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, round(rayp1.x), round(rayp1.y), round(rayp1.z))
 
-	# vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
+	if mouse.Pressed(hg.MB_1):
+		rayp0 = cam.GetTransform().GetPos()
+		rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 3
+		addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, round(rayp1.x), round(rayp1.y), round(rayp1.z))
 
-	# for ray in raylist:
-	# 	vtx = hg.Vertices(vtx_layout_lines, 2)
-	# 	vtx.Begin(0).SetPos(ray[0]).SetColor0(hg.Color.Green).End()
-	# 	vtx.Begin(1).SetPos(ray[1]).SetColor0(hg.Color.Green).End()
-	# 	hg.DrawLines(vid_scene_opaque, vtx, pos_rgb)
+	vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res)
 
-	hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res)
+	vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
 
+	show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb)
 
 	hg.Touch(0)
 	frame = hg.Frame()
