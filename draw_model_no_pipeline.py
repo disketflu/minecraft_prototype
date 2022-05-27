@@ -337,22 +337,25 @@ def deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 
 def generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_index):
 	chunks = []
+	queue = []
 	for curchunk_x in range(chunk_amount):
 		chunks.append([])
 		for curchunk_y in range(chunk_amount):
 			chunks[curchunk_x].append([])
 			for curchunk_z in range(chunk_amount):
-				mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size))
-				chunks[curchunk_x][curchunk_y].append([chunk_index, mdl, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size)])
+				# mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size))
+				# newchunk = [chunk_index, mdl, hg.Vec3(curchunk_x * chunk_size, curchunk_y * chunk_size, curchunk_z * chunk_size)]
+				newchunk = None
+				chunks[curchunk_x][curchunk_y].append(newchunk)
 				chunk_index += 1
-
-	return chunks
+				queue.append([curchunk_x, curchunk_y, curchunk_z])
+	return chunks, queue
 
 chunk_size = 10
-chunk_amount = 8
+chunk_amount = 10
 chunk_generator_index = 0
 world = createworld(chunk_amount, chunk_size)
-chunks = generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_generator_index)
+chunks, queue = generatechunks(chunk_amount, chunk_size, vtx_layout, world, chunk_generator_index)
 
 # setup scene
 scene = hg.Scene()
@@ -375,7 +378,7 @@ cam_pos = hg.Vec3(0, 1, -3)
 cam_rot = hg.Vec3(0, 0, 0)
 
 # main loop
-angle = 0
+chunk_index = 0
 
 while not hg.ReadKeyboard().Key(hg.K_Escape):
 	keyboard.Update()
@@ -394,11 +397,17 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	hg.SetViewPerspective(0, 0, 0, res_x, res_y, cam.GetTransform().GetWorld())
 
 	# deleterandomblock(world, vtx_layout, chunks, chunk_amount, chunk_size)
+	if chunk_index < len(queue):
+		mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
+		chunks[queue[chunk_index][0]][queue[chunk_index][1]][queue[chunk_index][2]] = [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)]
+		chunk_index += 1
+
 
 	for curchunk_x in range(chunk_amount):
 		for curchunk_y in range(chunk_amount):
 			for curchunk_z in range(chunk_amount):
-				hg.DrawModel(0, chunks[curchunk_x][curchunk_y][curchunk_z][1], shader, [], [], hg.TransformationMat4(chunks[curchunk_x][curchunk_y][curchunk_z][2], hg.Vec3(angle, angle, angle)))
+				if chunks[curchunk_x][curchunk_y][curchunk_z] is not None:
+					hg.DrawModel(0, chunks[curchunk_x][curchunk_y][curchunk_z][1], shader, [], [], hg.TransformationMat4(chunks[curchunk_x][curchunk_y][curchunk_z][2], hg.Vec3(0, 0, 0)))
 
 	if keyboard.Pressed(hg.K_Space):
 		rayp0 = cam.GetTransform().GetPos()
@@ -413,6 +422,7 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	# 	vtx.Begin(1).SetPos(ray[1]).SetColor0(hg.Color.Green).End()
 	# 	hg.DrawLines(vid_scene_opaque, vtx, pos_rgb)
 
+	hg.Touch(0)
 	hg.Frame()
 	hg.UpdateWindow(win)
 
