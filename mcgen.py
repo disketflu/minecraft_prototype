@@ -3,6 +3,8 @@ from distutils.command.build import build
 import harfang as hg
 import random
 from math import cos, sin, pi, floor, ceil
+import noise
+import numpy as np
 
 hg.InputInit()
 hg.WindowSystemInit()
@@ -34,7 +36,19 @@ pos_rgb = hg.LoadProgramFromFile('resources_compiled/shaders/pos_rgb')
 # create materials
 prg_ref = hg.LoadPipelineProgramRefFromFile('resources_compiled/core/shader/pbr.hps', res, hg.GetForwardPipelineInfo())
 
-mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(50, 255, 56), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
+mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 225, 26), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
+mat_water = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 205, 240), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.08, 0.08))
+mat_sand = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(250, 225, 6), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
+
+
+
+#### TERRAIN GENERATION SETTINGS ####
+shape = (50,50)
+scale = 100
+octaves = 4
+persistence = 0.5
+lacunarity = 1.8
+#### TERRAIN GENERATION SETTINGS ####
 
 def createworld(chunk_amount, chunk_size):
 	cubes_positions = []
@@ -43,241 +57,222 @@ def createworld(chunk_amount, chunk_size):
 		for y in range(chunk_size * chunk_amount):
 			cubes_positions[x].append([])
 			for z in range(chunk_size * chunk_amount):
-				v = cos(x * 4 * pi / (chunk_size * chunk_amount)) + cos(z * pi / (chunk_size * chunk_amount)) + sin(y * 2 * pi / (chunk_size * chunk_amount)) 
-				if v > 0:
-					cubes_positions[x][y].append([False])
+				v = noise.pnoise3(x/scale, 
+                                    y/scale, z/scale,
+                                    octaves=octaves, 
+                                    persistence=persistence, 
+                                    lacunarity=lacunarity, 
+                                    repeatx=1024, 
+                                    repeaty=1024,
+                                    repeatz=1024,  
+                                    base=10)
+				material = 0
+				if v < -0.05:
+					material = 2 #water
+				elif v < 0:
+					material = 1 #sand
+				if v < 0 : 
+					v = -v
+				correcty = round(v * 100)
+				if y == correcty or y == correcty + 1 or y == correcty - 1:
+					cubes_positions[x][y].append([True, material])
 				else:
-					cubes_positions[x][y].append([True])
+					cubes_positions[x][y].append([False, material])
 	return cubes_positions
 
 def buildmodel(vtx_layout, cubes_positions, chunk_size, chunk_pos):
+	list_mats = []
 	mdl_builder = hg.ModelBuilder()
 	for x in range(int(chunk_pos.x), int(chunk_pos.x + chunk_size)):
 		for y in range(int(chunk_pos.y), int(chunk_pos.y + chunk_size)):
 			for z in range(int(chunk_pos.z), int(chunk_pos.z + chunk_size)):
-				position = hg.Vec3(x - chunk_pos.x, y - chunk_pos.y, z - chunk_pos.z)
-				should_draw = cubes_positions[x][y][z][0]
+				list_mats.append(cubes_positions[x][y][z])
 
-				should_draw_xpositive = False
-				should_draw_xnegative = False
-				if x > 0 and x < len(cubes_positions) - 1:
-					should_draw_xpositive = cubes_positions[x + 1][y][z][0]
-					should_draw_xnegative = cubes_positions[x - 1][y][z][0]
+	for cube in list_mats:
+		position = hg.Vec3(x - chunk_pos.x, y - chunk_pos.y, z - chunk_pos.z)
+		should_draw = cubes_positions[x][y][z][0]
+		should_draw_xpositive = False
+		should_draw_xnegative = False
+		if x > 0 and x < len(cubes_positions) - 1:
+			should_draw_xpositive = cubes_positions[x + 1][y][z][0]
+			should_draw_xnegative = cubes_positions[x - 1][y][z][0]
+		should_draw_ypositive = False
+		should_draw_ynegative = False
+		if y > 0 and y < len(cubes_positions) - 1:
+			should_draw_ypositive = cubes_positions[x][y + 1][z][0]
+			should_draw_ynegative = cubes_positions[x][y - 1][z][0]
+		should_draw_zpositive = False
+		should_draw_znegative = False
+		if z > 0 and z < len(cubes_positions) - 1:
+			should_draw_zpositive = cubes_positions[x][y][z + 1][0]
+			should_draw_znegative = cubes_positions[x][y][z - 1][0]
+		is_covered_block = False
+		if should_draw_xpositive and should_draw_xnegative and should_draw_ypositive and should_draw_ynegative and should_draw_zpositive and should_draw_znegative:
+			is_covered_block = True
+		if should_draw and not is_covered_block:
+			vertex0 = hg.Vertex()
+			vertex0.pos = hg.Vec3(-0.5 + position.x, -
+								  0.5 + position.y, -0.5 + position.z)
+			vertex0.normal = hg.Vec3(0, 0, -1)
+			vertex0.uv0 = hg.Vec2(0, 0)
+			a = mdl_builder.AddVertex(vertex0)
+			vertex1 = hg.Vertex()
+			vertex1.pos = hg.Vec3(-0.5 + position.x,
+								  0.5 + position.y, -0.5 + position.z)
+			vertex1.normal = hg.Vec3(0, 0, -1)
+			vertex1.uv0 = hg.Vec2(0, 1)
+			b = mdl_builder.AddVertex(vertex1)
+			vertex2 = hg.Vertex()
+			vertex2.pos = hg.Vec3(
+				0.5 + position.x, 0.5 + position.y, -0.5 + position.z)
+			vertex2.normal = hg.Vec3(0, 0, -1)
+			vertex2.uv0 = hg.Vec2(1, 1)
+			c = mdl_builder.AddVertex(vertex2)
+			vertex3 = hg.Vertex()
+			vertex3.pos = hg.Vec3(
+				0.5 + position.x, -0.5 + position.y, -0.5 + position.z)
+			vertex3.normal = hg.Vec3(0, 0, -1)
+			vertex3.uv0 = hg.Vec2(1, 0)
+			d = mdl_builder.AddVertex(vertex3)
+			mdl_builder.AddTriangle(d, c, b)
+			mdl_builder.AddTriangle(b, a, d)
+			# +
+			vertex0 = hg.Vertex()
+			vertex0.pos = hg.Vec3(-0.5 + position.x, -
+								  0.5 + position.y, 0.5 + position.z)
+			vertex0.normal = hg.Vec3(0, 0, 1)
+			vertex0.uv0 = hg.Vec2(0, 0)
+			a = mdl_builder.AddVertex(vertex0)
+			vertex1 = hg.Vertex()
+			vertex1.pos = hg.Vec3(-0.5 + position.x,
+								  0.5 + position.y, 0.5 + position.z)
+			vertex1.normal = hg.Vec3(0, 0, 1)
+			vertex1.uv0 = hg.Vec2(0, 1)
+			b = mdl_builder.AddVertex(vertex1)
+			vertex2 = hg.Vertex()
+			vertex2.pos = hg.Vec3(
+				0.5 + position.x, 0.5 + position.y, 0.5 + position.z)
+			vertex2.normal = hg.Vec3(0, 0, 1)
+			vertex2.uv0 = hg.Vec2(1, 1)
+			c = mdl_builder.AddVertex(vertex2)
+			vertex3 = hg.Vertex()
+			vertex3.pos = hg.Vec3(
+				0.5 + position.x, -0.5 + position.y, 0.5 + position.z)
+			vertex3.normal = hg.Vec3(0, 0, 1)
+			vertex3.uv0 = hg.Vec2(1, 0)
+			d = mdl_builder.AddVertex(vertex3)
+			mdl_builder.AddTriangle(a, b, c)
+			mdl_builder.AddTriangle(a, c, d)
+			# -
+			vertex0 = hg.Vertex()
+			vertex0.pos = hg.Vec3(-0.5 + position.x, -
+								  0.5 + position.y, -0.5 + position.z)
+			vertex0.normal = hg.Vec3(0, -1, 0)
+			vertex0.uv0 = hg.Vec2(0, 0)
+			a = mdl_builder.AddVertex(vertex0)
+			vertex1 = hg.Vertex()
+			vertex1.pos = hg.Vec3(-0.5 + position.x, -
+								  0.5 + position.y, 0.5 + position.z)
+			vertex1.normal = hg.Vec3(0, -1, 0)
+			vertex1.uv0 = hg.Vec2(0, 1)
+			b = mdl_builder.AddVertex(vertex1)
+			vertex2 = hg.Vertex()
+			vertex2.pos = hg.Vec3(
+				0.5 + position.x, -0.5 + position.y, 0.5 + position.z)
+			vertex2.normal = hg.Vec3(0, -1, 0)
+			vertex2.uv0 = hg.Vec2(1, 1)
+			c = mdl_builder.AddVertex(vertex2)
+			vertex3 = hg.Vertex()
+			vertex3.pos = hg.Vec3(
+				0.5 + position.x, -0.5 + position.y, -0.5 + position.z)
+			vertex3.normal = hg.Vec3(0, -1, 0)
+			vertex3.uv0 = hg.Vec2(1, 0)
+			d = mdl_builder.AddVertex(vertex3)
+			mdl_builder.AddTriangle(a, b, c)
+			mdl_builder.AddTriangle(a, c, d)
+			# +
+			vertex0 = hg.Vertex()
+			vertex0.pos = hg.Vec3(-0.5 + position.x,
+								  0.5 + position.y, -0.5 + position.z)
+			vertex0.normal = hg.Vec3(0, 1, 0)
+			vertex0.uv0 = hg.Vec2(0, 0)
+			a = mdl_builder.AddVertex(vertex0)
+			vertex1 = hg.Vertex()
+			vertex1.pos = hg.Vec3(-0.5 + position.x,
+								  0.5 + position.y, 0.5 + position.z)
+			vertex1.normal = hg.Vec3(0, 1, 0)
+			vertex1.uv0 = hg.Vec2(0, 1)
+			b = mdl_builder.AddVertex(vertex1)
+			vertex2 = hg.Vertex()
+			vertex2.pos = hg.Vec3(
+				0.5 + position.x, 0.5 + position.y, 0.5 + position.z)
+			vertex2.normal = hg.Vec3(0, 1, 0)
+			vertex2.uv0 = hg.Vec2(1, 1)
+			c = mdl_builder.AddVertex(vertex2)
+			vertex3 = hg.Vertex()
+			vertex3.pos = hg.Vec3(
+				0.5 + position.x, 0.5 + position.y, -0.5 + position.z)
+			vertex3.normal = hg.Vec3(0, 1, 0)
+			vertex3.uv0 = hg.Vec2(1, 0)
+			d = mdl_builder.AddVertex(vertex3)
+			mdl_builder.AddTriangle(d, c, b)
+			mdl_builder.AddTriangle(b, a, d)
+			# -
+			vertex0 = hg.Vertex()
+			vertex0.pos = hg.Vec3(-0.5 + position.x, -
+								  0.5 + position.y, -0.5 + position.z)
+			vertex0.normal = hg.Vec3(-1, 0, 0)
+			vertex0.uv0 = hg.Vec2(0, 0)
+			a = mdl_builder.AddVertex(vertex0)
+			vertex1 = hg.Vertex()
+			vertex1.pos = hg.Vec3(-0.5 + position.x, -
+								  0.5 + position.y, 0.5 + position.z)
+			vertex1.normal = hg.Vec3(-1, 0, 0)
+			vertex1.uv0 = hg.Vec2(0, 1)
+			b = mdl_builder.AddVertex(vertex1)
+			vertex2 = hg.Vertex()
+			vertex2.pos = hg.Vec3(-0.5 + position.x,
+								  0.5 + position.y, 0.5 + position.z)
+			vertex2.normal = hg.Vec3(-1, 0, 0)
+			vertex2.uv0 = hg.Vec2(1, 1)
+			c = mdl_builder.AddVertex(vertex2)
+			vertex3 = hg.Vertex()
+			vertex3.pos = hg.Vec3(-0.5 + position.x,
+								  0.5 + position.y, -0.5 + position.z)
+			vertex3.normal = hg.Vec3(-1, 0, 0)
+			vertex3.uv0 = hg.Vec2(1, 0)
+			d = mdl_builder.AddVertex(vertex3)
+			mdl_builder.AddTriangle(d, c, b)
+			mdl_builder.AddTriangle(b, a, d)
+			# +
+			vertex0 = hg.Vertex()
+			vertex0.pos = hg.Vec3(
+				0.5 + position.x, -0.5 + position.y, -0.5 + position.z)
+			vertex0.normal = hg.Vec3(1, 0, 0)
+			vertex0.uv0 = hg.Vec2(0, 0)
+			a = mdl_builder.AddVertex(vertex0)
+			vertex1 = hg.Vertex()
+			vertex1.pos = hg.Vec3(
+				0.5 + position.x, -0.5 + position.y, 0.5 + position.z)
+			vertex1.normal = hg.Vec3(1, 0, 0)
+			vertex1.uv0 = hg.Vec2(0, 1)
+			b = mdl_builder.AddVertex(vertex1)
+			vertex2 = hg.Vertex()
+			vertex2.pos = hg.Vec3(
+				0.5 + position.x, 0.5 + position.y, 0.5 + position.z)
+			vertex2.normal = hg.Vec3(1, 0, 0)
+			vertex2.uv0 = hg.Vec2(1, 1)
+			c = mdl_builder.AddVertex(vertex2)
+			vertex3 = hg.Vertex()
+			vertex3.pos = hg.Vec3(
+				0.5 + position.x, 0.5 + position.y, -0.5 + position.z)
+			vertex3.normal = hg.Vec3(1, 0, 0)
+			vertex3.uv0 = hg.Vec2(1, 0)
+			d = mdl_builder.AddVertex(vertex3)
+			mdl_builder.AddTriangle(a, b, c)
+			mdl_builder.AddTriangle(a, c, d)
 
-				should_draw_ypositive = False
-				should_draw_ynegative = False
-				if y > 0 and y < len(cubes_positions) - 1:
-					should_draw_ypositive = cubes_positions[x][y + 1][z][0]
-					should_draw_ynegative = cubes_positions[x][y - 1][z][0]
-
-				should_draw_zpositive = False
-				should_draw_znegative = False
-				if z > 0 and z < len(cubes_positions) - 1:
-					should_draw_zpositive = cubes_positions[x][y][z + 1][0]
-					should_draw_znegative = cubes_positions[x][y][z - 1][0]
-
-				is_covered_block = False
-				if should_draw_xpositive and should_draw_xnegative and should_draw_ypositive and should_draw_ynegative and should_draw_zpositive and should_draw_znegative:
-					is_covered_block = True
-
-				if should_draw and not is_covered_block:
-					vertex0 = hg.Vertex()
-					vertex0.pos = hg.Vec3(-0.5 + position.x, -
-										  0.5 + position.y, -0.5 + position.z)
-					vertex0.normal = hg.Vec3(0, 0, -1)
-					vertex0.uv0 = hg.Vec2(0, 0)
-					a = mdl_builder.AddVertex(vertex0)
-
-					vertex1 = hg.Vertex()
-					vertex1.pos = hg.Vec3(-0.5 + position.x,
-										  0.5 + position.y, -0.5 + position.z)
-					vertex1.normal = hg.Vec3(0, 0, -1)
-					vertex1.uv0 = hg.Vec2(0, 1)
-					b = mdl_builder.AddVertex(vertex1)
-
-					vertex2 = hg.Vertex()
-					vertex2.pos = hg.Vec3(
-						0.5 + position.x, 0.5 + position.y, -0.5 + position.z)
-					vertex2.normal = hg.Vec3(0, 0, -1)
-					vertex2.uv0 = hg.Vec2(1, 1)
-					c = mdl_builder.AddVertex(vertex2)
-
-					vertex3 = hg.Vertex()
-					vertex3.pos = hg.Vec3(
-						0.5 + position.x, -0.5 + position.y, -0.5 + position.z)
-					vertex3.normal = hg.Vec3(0, 0, -1)
-					vertex3.uv0 = hg.Vec2(1, 0)
-					d = mdl_builder.AddVertex(vertex3)
-
-					mdl_builder.AddTriangle(d, c, b)
-					mdl_builder.AddTriangle(b, a, d)
-
-					# +Z
-
-					vertex0 = hg.Vertex()
-					vertex0.pos = hg.Vec3(-0.5 + position.x, -
-										  0.5 + position.y, 0.5 + position.z)
-					vertex0.normal = hg.Vec3(0, 0, 1)
-					vertex0.uv0 = hg.Vec2(0, 0)
-					a = mdl_builder.AddVertex(vertex0)
-
-					vertex1 = hg.Vertex()
-					vertex1.pos = hg.Vec3(-0.5 + position.x,
-										  0.5 + position.y, 0.5 + position.z)
-					vertex1.normal = hg.Vec3(0, 0, 1)
-					vertex1.uv0 = hg.Vec2(0, 1)
-					b = mdl_builder.AddVertex(vertex1)
-
-					vertex2 = hg.Vertex()
-					vertex2.pos = hg.Vec3(
-						0.5 + position.x, 0.5 + position.y, 0.5 + position.z)
-					vertex2.normal = hg.Vec3(0, 0, 1)
-					vertex2.uv0 = hg.Vec2(1, 1)
-					c = mdl_builder.AddVertex(vertex2)
-
-					vertex3 = hg.Vertex()
-					vertex3.pos = hg.Vec3(
-						0.5 + position.x, -0.5 + position.y, 0.5 + position.z)
-					vertex3.normal = hg.Vec3(0, 0, 1)
-					vertex3.uv0 = hg.Vec2(1, 0)
-					d = mdl_builder.AddVertex(vertex3)
-
-					mdl_builder.AddTriangle(a, b, c)
-					mdl_builder.AddTriangle(a, c, d)
-
-					# -Y
-
-					vertex0 = hg.Vertex()
-					vertex0.pos = hg.Vec3(-0.5 + position.x, -
-										  0.5 + position.y, -0.5 + position.z)
-					vertex0.normal = hg.Vec3(0, -1, 0)
-					vertex0.uv0 = hg.Vec2(0, 0)
-					a = mdl_builder.AddVertex(vertex0)
-
-					vertex1 = hg.Vertex()
-					vertex1.pos = hg.Vec3(-0.5 + position.x, -
-										  0.5 + position.y, 0.5 + position.z)
-					vertex1.normal = hg.Vec3(0, -1, 0)
-					vertex1.uv0 = hg.Vec2(0, 1)
-					b = mdl_builder.AddVertex(vertex1)
-
-					vertex2 = hg.Vertex()
-					vertex2.pos = hg.Vec3(
-						0.5 + position.x, -0.5 + position.y, 0.5 + position.z)
-					vertex2.normal = hg.Vec3(0, -1, 0)
-					vertex2.uv0 = hg.Vec2(1, 1)
-					c = mdl_builder.AddVertex(vertex2)
-
-					vertex3 = hg.Vertex()
-					vertex3.pos = hg.Vec3(
-						0.5 + position.x, -0.5 + position.y, -0.5 + position.z)
-					vertex3.normal = hg.Vec3(0, -1, 0)
-					vertex3.uv0 = hg.Vec2(1, 0)
-					d = mdl_builder.AddVertex(vertex3)
-
-					mdl_builder.AddTriangle(a, b, c)
-					mdl_builder.AddTriangle(a, c, d)
-
-					# +Y
-
-					vertex0 = hg.Vertex()
-					vertex0.pos = hg.Vec3(-0.5 + position.x,
-										  0.5 + position.y, -0.5 + position.z)
-					vertex0.normal = hg.Vec3(0, 1, 0)
-					vertex0.uv0 = hg.Vec2(0, 0)
-					a = mdl_builder.AddVertex(vertex0)
-
-					vertex1 = hg.Vertex()
-					vertex1.pos = hg.Vec3(-0.5 + position.x,
-										  0.5 + position.y, 0.5 + position.z)
-					vertex1.normal = hg.Vec3(0, 1, 0)
-					vertex1.uv0 = hg.Vec2(0, 1)
-					b = mdl_builder.AddVertex(vertex1)
-
-					vertex2 = hg.Vertex()
-					vertex2.pos = hg.Vec3(
-						0.5 + position.x, 0.5 + position.y, 0.5 + position.z)
-					vertex2.normal = hg.Vec3(0, 1, 0)
-					vertex2.uv0 = hg.Vec2(1, 1)
-					c = mdl_builder.AddVertex(vertex2)
-
-					vertex3 = hg.Vertex()
-					vertex3.pos = hg.Vec3(
-						0.5 + position.x, 0.5 + position.y, -0.5 + position.z)
-					vertex3.normal = hg.Vec3(0, 1, 0)
-					vertex3.uv0 = hg.Vec2(1, 0)
-					d = mdl_builder.AddVertex(vertex3)
-
-					mdl_builder.AddTriangle(d, c, b)
-					mdl_builder.AddTriangle(b, a, d)
-
-					# -X
-
-					vertex0 = hg.Vertex()
-					vertex0.pos = hg.Vec3(-0.5 + position.x, -
-										  0.5 + position.y, -0.5 + position.z)
-					vertex0.normal = hg.Vec3(-1, 0, 0)
-					vertex0.uv0 = hg.Vec2(0, 0)
-					a = mdl_builder.AddVertex(vertex0)
-
-					vertex1 = hg.Vertex()
-					vertex1.pos = hg.Vec3(-0.5 + position.x, -
-										  0.5 + position.y, 0.5 + position.z)
-					vertex1.normal = hg.Vec3(-1, 0, 0)
-					vertex1.uv0 = hg.Vec2(0, 1)
-					b = mdl_builder.AddVertex(vertex1)
-
-					vertex2 = hg.Vertex()
-					vertex2.pos = hg.Vec3(-0.5 + position.x,
-										  0.5 + position.y, 0.5 + position.z)
-					vertex2.normal = hg.Vec3(-1, 0, 0)
-					vertex2.uv0 = hg.Vec2(1, 1)
-					c = mdl_builder.AddVertex(vertex2)
-
-					vertex3 = hg.Vertex()
-					vertex3.pos = hg.Vec3(-0.5 + position.x,
-										  0.5 + position.y, -0.5 + position.z)
-					vertex3.normal = hg.Vec3(-1, 0, 0)
-					vertex3.uv0 = hg.Vec2(1, 0)
-					d = mdl_builder.AddVertex(vertex3)
-
-					mdl_builder.AddTriangle(d, c, b)
-					mdl_builder.AddTriangle(b, a, d)
-
-					# +X
-
-					vertex0 = hg.Vertex()
-					vertex0.pos = hg.Vec3(
-						0.5 + position.x, -0.5 + position.y, -0.5 + position.z)
-					vertex0.normal = hg.Vec3(1, 0, 0)
-					vertex0.uv0 = hg.Vec2(0, 0)
-					a = mdl_builder.AddVertex(vertex0)
-
-					vertex1 = hg.Vertex()
-					vertex1.pos = hg.Vec3(
-						0.5 + position.x, -0.5 + position.y, 0.5 + position.z)
-					vertex1.normal = hg.Vec3(1, 0, 0)
-					vertex1.uv0 = hg.Vec2(0, 1)
-					b = mdl_builder.AddVertex(vertex1)
-
-					vertex2 = hg.Vertex()
-					vertex2.pos = hg.Vec3(
-						0.5 + position.x, 0.5 + position.y, 0.5 + position.z)
-					vertex2.normal = hg.Vec3(1, 0, 0)
-					vertex2.uv0 = hg.Vec2(1, 1)
-					c = mdl_builder.AddVertex(vertex2)
-
-					vertex3 = hg.Vertex()
-					vertex3.pos = hg.Vec3(
-						0.5 + position.x, 0.5 + position.y, -0.5 + position.z)
-					vertex3.normal = hg.Vec3(1, 0, 0)
-					vertex3.uv0 = hg.Vec2(1, 0)
-					d = mdl_builder.AddVertex(vertex3)
-
-					mdl_builder.AddTriangle(a, b, c)
-					mdl_builder.AddTriangle(a, c, d)
-
-	mdl_builder.EndList(0)
+	mdl_builder.EndList(cubes_positions[x][y][z][1])
 	mdl = mdl_builder.MakeModel(vtx_layout)
 	return mdl
 
@@ -521,8 +516,8 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	mouse.Update()
 	dt = hg.TickClock()
 
-	cam_pos, cam_rot = handlePlayerMovement(keyboard, mouse, cam_pos, cam_rot, cam, chunk_size, chunk_amount, world)
-
+	hg.FpsController(keyboard, mouse, cam_pos, cam_rot,
+					 20 if keyboard.Down(hg.K_LShift) else 8, dt)
 	cam.GetTransform().SetPos(cam_pos)
 	cam.GetTransform().SetRot(cam_rot)
 	scene.Update(dt)
@@ -530,7 +525,7 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	if chunk_index < len(queue):
 		mdl = buildmodel(vtx_layout, world, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
 		mdl_ref = res.AddModel(str(chunk_index), mdl)
-		chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)), mdl_ref, [mat_cube])
+		chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)), mdl_ref, [mat_cube, mat_sand, mat_water])
 		chunks[queue[chunk_index][0]][queue[chunk_index][1]][queue[chunk_index][2]] = [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size), chunk_node]
 		chunk_index += 1
 
