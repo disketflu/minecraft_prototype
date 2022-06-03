@@ -1,17 +1,25 @@
+class DictionnarySparseMatrix:
+	def __init__(self):
+		self.elements = {}
 
-def createworld(chunk_amount, chunk_size):
-	cubes_positions = {}
-	for x in range(-(chunk_size * chunk_amount), chunk_size * chunk_amount):
-		cubes_positions[x] = {}
-		for y in range(-(chunk_size * chunk_amount), chunk_size * chunk_amount):
-			cubes_positions[x][y] = {}
-			for z in range(-(chunk_size * chunk_amount), chunk_size * chunk_amount):
-				cubes_positions[x][y][z] = [True, 0]
+	def addValue(self, tuple, value):
+		self.elements[tuple] = value
 
+	def deleteValue(self, tuple):
+		value = self.elements.pop(tuple, None)
+		return value
 
-				
-	return cubes_positions
+	def readValue(self, tuple):
+		try:
+			value = self.elements[tuple]
+		except KeyError:
+			# could also be 0.0 if using floats...
+			value = None
+		return value
 
-world = createworld(10, 10)
-print(world.__sizeof__())
-print(world)
+	def readDict(self):
+		return self.elements
+
+sparse = DictionnarySparseMatrix()
+sparse.addValue((1, 2, 3), 15.7)
+print(sparse.readValue((1, 2, 3)))

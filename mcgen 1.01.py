@@ -1,6 +1,3 @@
-from typing import Dict
-from playercontroller import handlePlayerMovement
-from distutils.command.build import build
 import harfang as hg
 import random
 from math import cos, sin, pi, floor, ceil
@@ -61,15 +58,16 @@ class DictionnarySparseMatrix:
 	def deleteValue(self, tuple):
 		value = self.elements.pop(tuple, None)
 		return value
-		
+
 	def readValue(self, tuple):
 		try:
 			value = self.elements[tuple]
 		except KeyError:
-			# could also be 0.0 if using floats...
 			value = None
 		return value
 
+	def readDict(self):
+		return self.elements
 
 def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 	list_mats = []
@@ -95,13 +93,9 @@ def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 						material = 2 #water
 					elif v < 0.02:
 						material = 1 #sand
-					# if v < 0 : 
-					# 	v = -v
 					correcty = round(v * 100)
 					if y == correcty or y == correcty + 1 or y == correcty - 1:
 						block_data = [True, material]
-					# elif y == 0:
-					# 	cubes_positions[x][y][z] = [True, 2]
 					else:
 						block_data = [False, 0]
 					list_mats.append([[x, y, z], block_data])
@@ -121,26 +115,7 @@ def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 			position = hg.Vec3(x - chunk_pos.x, y - chunk_pos.y, z - chunk_pos.z)
 			should_draw = cube[1][0]
 
-			# should_draw_xpositive = False
-			# should_draw_xnegative = False
-			# if x > 0 and x < len(cubes_positions) - 1:
-			# 	should_draw_xpositive = cubes_positions[x + 1][y][z][0]
-			# 	should_draw_xnegative = cubes_positions[x - 1][y][z][0]
-			# should_draw_ypositive = False
-			# should_draw_ynegative = False
-			# if y > 0 and y < len(cubes_positions) - 1:
-			# 	should_draw_ypositive = cubes_positions[x][y + 1][z][0]
-			# 	should_draw_ynegative = cubes_positions[x][y - 1][z][0]
-			# should_draw_zpositive = False
-			# should_draw_znegative = False
-			# if z > 0 and z < len(cubes_positions) - 1:
-			# 	should_draw_zpositive = cubes_positions[x][y][z + 1][0]
-			# 	should_draw_znegative = cubes_positions[x][y][z - 1][0]
-			# is_covered_block = False
-			# if should_draw_xpositive and should_draw_xnegative and should_draw_ypositive and should_draw_ynegative and should_draw_zpositive and should_draw_znegative:
-			# 	is_covered_block = True
-
-			if should_draw:			# and not is_covered_block:
+			if should_draw:
 				vertex0 = hg.Vertex()
 				vertex0.pos = hg.Vec3(-0.5 + position.x, -
 									  0.5 + position.y, -0.5 + position.z)
@@ -308,14 +283,6 @@ def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 	return mdl
 
 def findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount):
-	# start sanity checks
-	if x < -(chunk_size * chunk_amount) or y < -(chunk_size * chunk_amount) or z < -(chunk_size * chunk_amount):
-		return None
-
-	if x > chunk_size * chunk_amount - 1 or y > chunk_size * chunk_amount - 1 or z > chunk_size * chunk_amount - 1:
-		return None
-	# end sanity checks
-		
 	appropriatechunk = None
 	chunk_x = x
 	chunk_y = y
@@ -338,142 +305,166 @@ def findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount):
 		chunk_z = rounded_z - chunk_size
 	elif rounded_z - z < 0:
 		chunk_z = rounded_z
-	try:
-		if chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][2] == hg.Vec3(chunk_x, chunk_y, chunk_z):
-			appropriatechunk = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)]
-	except:
-		print("Couldn't find chunk")
 
-	if appropriatechunk == None:
-		print("debug chunk finder :")
-		print(x, y, z, "x y z")
-		print(chunk_x, chunk_y, chunk_z, " chunk x y z")
-		print(rounded_x, rounded_y, rounded_z, " rounded x y z \n")
+	appropriatechunk = chunks.readValue((int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)))
+
+	# if appropriatechunk == None:
+	# 	print("debug chunk finder :")
+	# 	print(x, y, z, "x y z")
+	# 	print(chunk_x, chunk_y, chunk_z, " chunk x y z")
+	# 	print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
 
 	return appropriatechunk
-
-def reloadsidechunks(vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
-	chunktoreload0 = findchunkfromcoordinates(x, y + chunk_size, z, chunks, chunk_size, chunk_amount)
-	chunktoreload1 = findchunkfromcoordinates(x, y - chunk_size, z, chunks, chunk_size, chunk_amount)
-	chunktoreload2 = findchunkfromcoordinates(x + chunk_size, y, z, chunks, chunk_size, chunk_amount)
-	chunktoreload3 = findchunkfromcoordinates(x - chunk_size, y , z, chunks, chunk_size, chunk_amount)
-	chunktoreload4 = findchunkfromcoordinates(x, y, z + chunk_size, chunks, chunk_size, chunk_amount)
-	chunktoreload5 = findchunkfromcoordinates(x, y, z - chunk_size, chunks, chunk_size, chunk_amount)
-
-	if chunktoreload0 != None:
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload0[2])
-		chunk_x = chunktoreload0[2].x
-		chunk_y = chunktoreload0[2].y
-		chunk_z = chunktoreload0[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
-		res.DestroyModel(mdl_ref)
-		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-
-	if chunktoreload1 != None:
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload1[2])
-		chunk_x = chunktoreload1[2].x
-		chunk_y = chunktoreload1[2].y
-		chunk_z = chunktoreload1[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
-		res.DestroyModel(mdl_ref)
-		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-
-	if chunktoreload2 != None:
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload2[2])
-		chunk_x = chunktoreload2[2].x
-		chunk_y = chunktoreload2[2].y
-		chunk_z = chunktoreload2[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
-		res.DestroyModel(mdl_ref)
-		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-
-	if chunktoreload3 != None:
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload3[2])
-		chunk_x = chunktoreload3[2].x
-		chunk_y = chunktoreload3[2].y
-		chunk_z = chunktoreload3[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
-		res.DestroyModel(mdl_ref)
-		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-
-	if chunktoreload4 != None:
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload4[2])
-		chunk_x = chunktoreload4[2].x
-		chunk_y = chunktoreload4[2].y
-		chunk_z = chunktoreload4[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
-		res.DestroyModel(mdl_ref)
-		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-
-	if chunktoreload5 != None:
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload5[2])
-		chunk_x = chunktoreload5[2].x
-		chunk_y = chunktoreload5[2].y
-		chunk_z = chunktoreload5[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
-		res.DestroyModel(mdl_ref)
-		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
 
 def deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 	chunktoreload = findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount)
 
 	if chunktoreload != None:
-		# world[x][y][z][0] = False
 		world.addValue((x, y, z), [False, 0])
 		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
-		chunk_x = chunktoreload[2].x
-		chunk_y = chunktoreload[2].y
-		chunk_z = chunktoreload[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
+		mdl_ref = chunktoreload[3].GetObject().GetModelRef()
 		res.DestroyModel(mdl_ref)
 		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-		# reloadsidechunks(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z)
+		chunktoreload[3].GetObject().SetModelRef(mdl_ref)
+		chunktoreload[1] = mdl
 
 
 def addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 	chunktoreload = findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount)
 
 	if chunktoreload != None:
-		# world[x][y][z][0] = True
 		world.addValue((x, y, z), [True, 0])
 		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
-		chunk_x = chunktoreload[2].x
-		chunk_y = chunktoreload[2].y
-		chunk_z = chunktoreload[2].z
-		mdl_ref = chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().GetModelRef()
+		mdl_ref = chunktoreload[3].GetObject().GetModelRef()
 		res.DestroyModel(mdl_ref)
 		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][3].GetObject().SetModelRef(mdl_ref)
-		chunks[int(chunk_x / chunk_size)][int(chunk_y  / chunk_size)][int(chunk_z  / chunk_size)][1] = mdl
-		# reloadsidechunks(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z)
+		chunktoreload[3].GetObject().SetModelRef(mdl_ref)
+		chunktoreload[1] = mdl
+	else:
+		world.addValue((x, y, z), [True, 0])
+		chunk_x = x
+		chunk_y = y
+		chunk_z = z
 
-def generatechunks(chunk_amount, chunk_index):
-	chunks = {}
+		rounded_x = round(x/chunk_size)*chunk_size
+		if rounded_x - x > 0:
+			chunk_x = rounded_x - chunk_size
+		elif rounded_x - x < 0:
+			chunk_x = rounded_x
+
+		rounded_y = round(y/chunk_size)*chunk_size
+		if rounded_y - y > 0:
+			chunk_y = rounded_y - chunk_size
+		elif rounded_y - y < 0:
+			chunk_y = rounded_y
+
+		rounded_z = round(z/chunk_size)*chunk_size
+		if rounded_z - z > 0:
+			chunk_z = rounded_z - chunk_size
+		elif rounded_z - z < 0:
+			chunk_z = rounded_z
+		mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(chunk_x, chunk_y, chunk_z))
+		mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
+		chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(chunk_x, chunk_y, chunk_z)), mdl_ref, [mat_cube, mat_sand, mat_water])
+		chunks.addValue((chunk_x / chunk_size, chunk_y / chunk_size, chunk_z / chunk_size), [random.uniform(0, 5000), mdl, hg.Vec3(chunk_x, chunk_y, chunk_z), chunk_node])
+	
+def generatechunks(chunk_amount):
+	chunks = DictionnarySparseMatrix()
 	queue = []
 	for curchunk_x in range(-chunk_amount, chunk_amount):
-		chunks[curchunk_x] = {}
-		for curchunk_y in range(-chunk_amount, chunk_amount):
-			chunks[curchunk_x][curchunk_y] = {}
+		for curchunk_y in range(-5, 5):
 			for curchunk_z in range(-chunk_amount, chunk_amount):
-				newchunk = None
-				chunks[curchunk_x][curchunk_y][curchunk_z] = newchunk
-				chunk_index += 1
 				queue.append([curchunk_x, curchunk_y, curchunk_z])
+
 	return chunks, queue
+
+def loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue):
+	toqueue = []
+	for x in range(10):
+		for y in range(10):
+			for z in range(10):
+				chunk_x_positive = cam_pos.x + (chunk_size * x)
+				chunk_y_positive = cam_pos.y + (chunk_size * y)
+				chunk_z_positive = cam_pos.z + (chunk_size * z)
+
+				chunk_x_negative = cam_pos.x + (chunk_size * x)
+				chunk_y_negative = cam_pos.y + (chunk_size * y)
+				chunk_z_negative = cam_pos.z + (chunk_size * z)
+
+				chunk_x = chunk_x_positive
+				chunk_y = chunk_y_positive
+				chunk_z = chunk_z_positive
+				rounded_x = round(x/chunk_size)*chunk_size
+				if rounded_x - x > 0:
+					chunk_x = rounded_x - chunk_size
+				elif rounded_x - x < 0:
+					chunk_x = rounded_x
+		
+				rounded_y = round(y/chunk_size)*chunk_size
+				if rounded_y - y > 0:
+					chunk_y = rounded_y - chunk_size
+				elif rounded_y - y < 0:
+					chunk_y = rounded_y
+		
+				rounded_z = round(z/chunk_size)*chunk_size
+				if rounded_z - z > 0:
+					chunk_z = rounded_z - chunk_size
+				elif rounded_z - z < 0:
+					chunk_z = rounded_z
+
+				if chunks.readValue((int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size))) == None and not [int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)] in queue:
+					print("debug chunk finder :")
+					print(x, y, z, "x y z")
+					print(chunk_x, chunk_y, chunk_z, " chunk x y z")
+					print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
+					toqueue.append([int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)])
+
+					# print("generating....")
+					# mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(chunk_x, chunk_y, chunk_z))
+					# mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
+					# chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(chunk_x, chunk_y, chunk_z)), mdl_ref, [mat_cube, mat_sand, mat_water])
+					# chunks.addValue((chunk_x / chunk_size, chunk_y / chunk_size, chunk_z / chunk_size), [random.uniform(0, 5000), mdl, hg.Vec3(chunk_x, chunk_y, chunk_z), chunk_node])
+
+
+				#### NEGATIVE PART
+
+				chunk_x = chunk_x_negative
+				chunk_y = chunk_y_negative
+				chunk_z = chunk_z_negative
+		
+				rounded_x = round(x/chunk_size)*chunk_size
+				if rounded_x - x > 0:
+					chunk_x = rounded_x - chunk_size
+				elif rounded_x - x < 0:
+					chunk_x = rounded_x
+		
+				rounded_y = round(y/chunk_size)*chunk_size
+				if rounded_y - y > 0:
+					chunk_y = rounded_y - chunk_size
+				elif rounded_y - y < 0:
+					chunk_y = rounded_y
+		
+				rounded_z = round(z/chunk_size)*chunk_size
+				if rounded_z - z > 0:
+					chunk_z = rounded_z - chunk_size
+				elif rounded_z - z < 0:
+					chunk_z = rounded_z
+
+				if chunks.readValue((int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size))) == None and not [int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)] in queue:
+					
+					print("debug chunk finder :")
+					print(x, y, z, "x y z")
+					print(chunk_x, chunk_y, chunk_z, " chunk x y z")
+					print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
+					# print("generating....")
+					toqueue.append([int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)])
+					# mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(chunk_x, chunk_y, chunk_z))
+					# mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
+					# chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(chunk_x, chunk_y, chunk_z)), mdl_ref, [mat_cube, mat_sand, mat_water])
+					# chunks.addValue((chunk_x / chunk_size, chunk_y / chunk_size, chunk_z / chunk_size), [random.uniform(0, 5000), mdl, hg.Vec3(chunk_x, chunk_y, chunk_z), chunk_node])
+
+	return toqueue
+
 
 def show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb):
 	raylist = []
@@ -518,8 +509,7 @@ def show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb):
 
 chunk_size = 10
 chunk_amount = 5
-chunk_generator_index = 0
-chunks, queue = generatechunks(chunk_amount, chunk_size)
+chunks, queue = generatechunks(chunk_amount)
 modified_blocks = DictionnarySparseMatrix()
 
 # setup scene
@@ -561,8 +551,12 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 		mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
 		mdl_ref = res.AddModel(str(chunk_index), mdl)
 		chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)), mdl_ref, [mat_cube, mat_sand, mat_water])
-		chunks[queue[chunk_index][0]][queue[chunk_index][1]][queue[chunk_index][2]] = [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size), chunk_node]
+		chunks.addValue((queue[chunk_index][0], queue[chunk_index][1], queue[chunk_index][2]), [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size), chunk_node])
 		chunk_index += 1
+
+	a = loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue)
+	for i in a:
+		queue.append(i)
 
 	if keyboard.Pressed(hg.K_Space):
 		rayp0 = cam.GetTransform().GetPos()
