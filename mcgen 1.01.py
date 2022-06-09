@@ -380,43 +380,44 @@ def generatechunks(chunk_amount):
 
 def loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue):
 	toqueue = []
-	for x in range(10):
-		for y in range(10):
-			for z in range(10):
+	for x in range(3):
+		for y in range(3):
+			for z in range(3):
 				chunk_x_positive = cam_pos.x + (chunk_size * x)
 				chunk_y_positive = cam_pos.y + (chunk_size * y)
 				chunk_z_positive = cam_pos.z + (chunk_size * z)
 
-				chunk_x_negative = cam_pos.x + (chunk_size * x)
-				chunk_y_negative = cam_pos.y + (chunk_size * y)
-				chunk_z_negative = cam_pos.z + (chunk_size * z)
+				chunk_x_negative = cam_pos.x - (chunk_size * x)
+				chunk_y_negative = cam_pos.y - (chunk_size * y)
+				chunk_z_negative = cam_pos.z - (chunk_size * z)
 
 				chunk_x = chunk_x_positive
 				chunk_y = chunk_y_positive
 				chunk_z = chunk_z_positive
-				rounded_x = round(x/chunk_size)*chunk_size
+				rounded_x = round(chunk_x/chunk_size)*chunk_size
 				if rounded_x - x > 0:
 					chunk_x = rounded_x - chunk_size
 				elif rounded_x - x < 0:
 					chunk_x = rounded_x
 		
-				rounded_y = round(y/chunk_size)*chunk_size
+				rounded_y = round(chunk_y/chunk_size)*chunk_size
 				if rounded_y - y > 0:
 					chunk_y = rounded_y - chunk_size
 				elif rounded_y - y < 0:
 					chunk_y = rounded_y
 		
-				rounded_z = round(z/chunk_size)*chunk_size
+				rounded_z = round(chunk_z/chunk_size)*chunk_size
 				if rounded_z - z > 0:
 					chunk_z = rounded_z - chunk_size
 				elif rounded_z - z < 0:
 					chunk_z = rounded_z
 
 				if chunks.readValue((int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size))) == None and not [int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)] in queue:
-					print("debug chunk finder :")
-					print(x, y, z, "x y z")
-					print(chunk_x, chunk_y, chunk_z, " chunk x y z")
-					print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
+					# print("debug chunk finder :")
+					# print(x, y, z, "x y z")
+					# print(chunk_x_positive, chunk_y_positive, chunk_z_positive, "x y z positive")
+					# print(chunk_x, chunk_y, chunk_z, " chunk x y z")
+					# print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
 					toqueue.append([int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)])
 
 					# print("generating....")
@@ -432,19 +433,19 @@ def loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue):
 				chunk_y = chunk_y_negative
 				chunk_z = chunk_z_negative
 		
-				rounded_x = round(x/chunk_size)*chunk_size
+				rounded_x = round(chunk_x/chunk_size)*chunk_size
 				if rounded_x - x > 0:
 					chunk_x = rounded_x - chunk_size
 				elif rounded_x - x < 0:
 					chunk_x = rounded_x
 		
-				rounded_y = round(y/chunk_size)*chunk_size
+				rounded_y = round(chunk_y/chunk_size)*chunk_size
 				if rounded_y - y > 0:
 					chunk_y = rounded_y - chunk_size
 				elif rounded_y - y < 0:
 					chunk_y = rounded_y
 		
-				rounded_z = round(z/chunk_size)*chunk_size
+				rounded_z = round(chunk_z/chunk_size)*chunk_size
 				if rounded_z - z > 0:
 					chunk_z = rounded_z - chunk_size
 				elif rounded_z - z < 0:
@@ -452,10 +453,11 @@ def loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue):
 
 				if chunks.readValue((int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size))) == None and not [int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)] in queue:
 					
-					print("debug chunk finder :")
-					print(x, y, z, "x y z")
-					print(chunk_x, chunk_y, chunk_z, " chunk x y z")
-					print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
+					# print("debug chunk finder :")
+					# print(x, y, z, "x y z")
+					# print(chunk_x_negative, chunk_y_negative, chunk_z_negative, "chunk x y z negative")
+					# print(chunk_x, chunk_y, chunk_z, " chunk x y z")
+					# print(rounded_x, rounded_y, rounded_z, " rounded x y z \n") # print debug infos
 					# print("generating....")
 					toqueue.append([int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)])
 					# mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(chunk_x, chunk_y, chunk_z))
@@ -514,10 +516,11 @@ modified_blocks = DictionnarySparseMatrix()
 
 # setup scene
 scene = hg.Scene()
+hg.LoadSceneFromAssets("probescn/probe.scn", scene, res, hg.GetForwardPipelineInfo())
 scene.canvas.color = hg.ColorI(200, 210, 208)
 scene.environment.ambient = hg.Color.Black
 
-cam = hg.CreateCamera(scene, hg.Mat4.Identity, 0.01, 1000)
+cam = hg.CreateCamera(scene, hg.Mat4.Identity, 0.05, 1000)
 scene.SetCurrentCamera(cam)
 
 lgt = hg.CreateLinearLight(scene, hg.TransformationMat4(hg.Vec3(0, 0, 0), hg.Deg3(19, 59, 0)), hg.Color(
@@ -529,7 +532,7 @@ back_lgt = hg.CreatePointLight(scene, hg.TranslationMat4(hg.Vec3(
 keyboard = hg.Keyboard()
 mouse = hg.Mouse()
 
-cam_pos = hg.Vec3(0, 100, 0)
+cam_pos = hg.Vec3(0, 10, 0)
 cam_rot = hg.Vec3(0, 0, 0)
 
 # main loop
