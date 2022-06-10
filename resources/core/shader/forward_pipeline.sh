@@ -1,3 +1,4 @@
+// HARFANG(R) Copyright (C) 2022 Emmanuel Julien, NWNC HARFANG. Released under GPL/LGPL/Commercial Licence, see licence.txt for details.
 #include <bgfx_shader.sh>
 
 #define PI 3.14159265359
@@ -29,7 +30,9 @@ uniform mat4 uMainInvProjection; // inverse projection for the main render (used
 uniform mat4 uPreviousViewProjection;
 uniform mat4 uPreviousModel[BGFX_CONFIG_MAX_BONES];
 uniform mat4 uViewProjUnjittered;
-uniform vec4 uAAAParams[3]; // [0].x: ssgi ratio, [0].y: ssr ratio, [0].z: temporal AA weight, [0].w: motion blur strength, [1].x: exposure, [1].y: 1/gamma, [1].z: sample count, [1].w: max radius, [2].x: specular weight
+uniform vec4 uAAAParams[3]; // [0].x: ssgi ratio, [0].y: ssr ratio, [0].z: temporal AA weight, [0].w: motion blur strength,
+							// [1].x: exposure, [1].y: 1/gamma, [1].z: sample count, [1].w: screenspace ray max length
+							// [2].x: specular weight, [2].y: sharpen
 
 uniform mat4 uMainInvView; // inversion view matrix
 uniform mat4 uProbeMatrix;

@@ -14,13 +14,13 @@ void main() {
 	ivec2 coord = ivec2(gl_GlobalInvocationID.xy) + ivec2(u_viewRect.xy);
 
 #if BGFX_SHADER_LANGUAGE_GLSL
-		ivec2 tex_coord = ivec2(coord.x, textureSize(u_depth, 0).y - 1 - coord.y);
+	ivec2 tex_coord = ivec2(coord.x, textureSize(u_depth, 0).y - 1 - coord.y);
 #else
-		ivec2 tex_coord = coord;
+	ivec2 tex_coord = coord;
 #endif
 
 	vec2 z;
-	if(all(bvec4(greaterThanEqual(coord, viewport.xy), lessThan(coord, viewport.xy + viewport.zw)))) {
+	if (all(bvec4(greaterThanEqual(coord, viewport.xy), lessThan(coord, viewport.xy + viewport.zw)))) {
 		z = texelFetch(u_depth, tex_coord, 0).ww;
 
 #if BGFX_SHADER_LANGUAGE_GLSL
