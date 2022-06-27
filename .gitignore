@@ -1,1 +1,6 @@
 /resources_compiled
+/toolchains
+assetc.exe
+glfw3.dll
+lua53.dll
+openvr_api.dll
