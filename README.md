@@ -1,6 +1,6 @@
 # HARFANG® Minecraft Prototype
 
-This **prototype** demonstrate the usage of Minecraft Mechanics (chunks, procedural world generation) using the HARFANG API in **Python**.
+This **prototype** demonstrates the usage of Minecraft Mechanics (chunks, procedural world generation) using the HARFANG API in **Python**.
 
 To run the prototype:
 

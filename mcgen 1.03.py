@@ -3,6 +3,7 @@ import random
 from math import cos, sin, pi, floor, ceil
 import noise
 import numpy as np
+from multiprocessing import Process
 
 hg.InputInit()
 hg.WindowSystemInit()
@@ -37,10 +38,10 @@ prg_ref = hg.LoadPipelineProgramRefFromFile('resources_compiled/core/shader/pbr.
 mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 225, 26), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
 mat_water = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 205, 240), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.08, 0.08))
 mat_sand = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(250, 225, 6), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
-
+mat_snow = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(255, 255, 255), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.8, 0.1))
+mat_rock = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(250, 250, 250), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 1, 1))
 
 #### TERRAIN GENERATION SETTINGS ####
-shape = (50,50)
 scale = 100
 octaves = 4
 persistence = 0.5
@@ -70,7 +71,7 @@ class DictionnarySparseMatrix:
 
 def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 	list_mats = []
-	final_list_mats = [[], [], []]
+	final_list_mats = [[], [], [], [], []]
 	mdl_builder = hg.ModelBuilder()
 	count_empty = 0
 	for x in range(int(chunk_pos.x), int(chunk_pos.x + chunk_size)):
@@ -88,15 +89,18 @@ def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 										repeaty=1024,
 										repeatz=1024,  
 										base=seed)
-					material = 0 #grass
+					material = 3 #snow
 					if v < -0.1:
 						material = 2 #water
 					elif v < 0.02:
 						material = 1 #sand
+					elif v < 0.1:
+						material = 0 # grass
+					elif v < 0.25:
+						material = 4 # rock
 					correcty = round(v * 100)
 					if y == correcty or y == correcty + 1 or y == correcty - 1:
 						block_data = [True, material]
-						# list_mats.append([[x, y, z], block_data])
 					else:
 						block_data = [False, 0]
 						count_empty +=1
@@ -330,20 +334,22 @@ def deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 			chunktoreload[1] = mdl
 
 
-def addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
+def addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z, blockvalue):
 	chunktoreload = findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount)
 
 	if chunktoreload != None:
-		world.addValue((x, y, z), [True, 0])
-		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
-		if mdl is not None:
-			mdl_ref = chunktoreload[3].GetObject().GetModelRef()
-			res.DestroyModel(mdl_ref)
-			mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-			chunktoreload[3].GetObject().SetModelRef(mdl_ref)
-			chunktoreload[1] = mdl
-	else:
-		world.addValue((x, y, z), [True, 0])
+		if world.readValue((x, y, z)) == None:
+			world.addValue((x, y, z), [True, blockvalue])
+			mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
+			if mdl is not None:
+				mdl_ref = chunktoreload[3].GetObject().GetModelRef()
+				res.DestroyModel(mdl_ref)
+				mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
+				chunktoreload[3].GetObject().SetModelRef(mdl_ref)
+				chunktoreload[1] = mdl
+
+	elif world.readValue((x, y, z)) == None:
+		world.addValue((x, y, z), [True, blockvalue])
 		chunk_x = x
 		chunk_y = y
 		chunk_z = z
@@ -368,7 +374,7 @@ def addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 		mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(chunk_x, chunk_y, chunk_z))
 		if mdl is not None:
 			mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-			chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(chunk_x, chunk_y, chunk_z)), mdl_ref, [mat_cube, mat_sand, mat_water])
+			chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(chunk_x, chunk_y, chunk_z)), mdl_ref, [mat_cube, mat_sand, mat_water, mat_snow, mat_rock])
 			chunks.addValue((chunk_x / chunk_size, chunk_y / chunk_size, chunk_z / chunk_size), [random.uniform(0, 5000), mdl, hg.Vec3(chunk_x, chunk_y, chunk_z), chunk_node])
 	
 def generatechunks(chunk_amount):
@@ -444,19 +450,6 @@ def loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue):
 
 				if chunks.readValue((int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size))) is None and not [int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)] in queue:
 					toqueue.append([int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)])
-				
-				deleted_chunks = []
-				for chunk in chunks.readDict():
-					if chunks.readValue(chunk)[3].IsValid() and chunks.readValue(chunk)[3].HasTransform():
-						dist_to_cam = hg.Dist(hg.GetT(chunks.readValue(chunk)[3].GetTransform().GetWorld()), cam_pos)
-						if dist_to_cam > 2000:
-							chunks.readValue(chunk)[3].RemoveObject()
-							chunks.readValue(chunk)[3].DestroyInstance()
-							deleted_chunks.append(chunk)
-							# print("Destroyed chunk :", chunk)
-
-				for chunk in deleted_chunks:
-					chunks.deleteValue(chunk)
 
 	return toqueue
 
@@ -497,7 +490,6 @@ def loadchunksinfinite(cam_pos, chunks, chunk_size, queue, x, y, z):
 		toqueue.append([int(chunk_x / chunk_size), int(chunk_y / chunk_size), int(chunk_z / chunk_size)])
 
 	return toqueue
-
 
 def show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb):
 	raylist = []
@@ -540,12 +532,87 @@ def show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb):
 		vtx.Begin(1).SetPos(ray[1]).SetColor0(hg.Color.Green).End()
 		hg.DrawLines(vid_scene_opaque, vtx, pos_rgb)
 
-chunk_size = 15
+def chunksThread():
+	global chunk_index, cam_pos, prvs_cam_pos
+	if chunk_index < len(queue):
+		chunk_diff = len(queue) - chunk_index
+		if chunk_diff > 4 and prvs_cam_pos == cam_pos: # if player is not moving and more than 4 chunks are in queue, it will generate all 4 of them in a single frame since the game doesn't really seem to "freeze" when idle
+			for i in range(4):
+				try:
+					mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
+					if mdl is not None:
+						mdl_ref = res.AddModel(str(chunk_index), mdl)
+						chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)), mdl_ref, [mat_cube, mat_sand, mat_water, mat_snow, mat_rock])
+						chunks.addValue((queue[chunk_index][0], queue[chunk_index][1], queue[chunk_index][2]), [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size), chunk_node])
+						queue[chunk_index] = []
+
+				except Exception as e:
+					print(e)
+
+				chunk_index += 1
+		else: # player is moving so we don't want to have lags or freezes so we only generate one
+			try:
+				mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
+				if mdl is not None:
+					mdl_ref = res.AddModel(str(chunk_index), mdl)
+					chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)), mdl_ref, [mat_cube, mat_sand, mat_water, mat_snow, mat_rock])
+					chunks.addValue((queue[chunk_index][0], queue[chunk_index][1], queue[chunk_index][2]), [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size), chunk_node])
+					queue[chunk_index] = []
+
+			except Exception as e:
+				print(e)
+
+			chunk_index += 1
+	else:
+		deleted_chunks = []
+		for chunk in chunks.readDict():
+			if chunks.readValue(chunk)[3].IsValid() and chunks.readValue(chunk)[3].HasTransform():
+				dist_to_cam = hg.Dist(hg.GetT(chunks.readValue(chunk)[3].GetTransform().GetWorld()), cam_pos)
+				if dist_to_cam > 200:
+					chunks.readValue(chunk)[3].RemoveObject()
+					chunks.readValue(chunk)[3].DestroyInstance()
+					deleted_chunks.append(chunk)
+
+		for chunk in deleted_chunks:
+			chunks.deleteValue(chunk)
+
+def movingChunksQueue():
+	global queue, prvs_cam_pos, cam_pos, chunks, chunk_size, added_chunks, added_queue_index, added_queue
+	a = loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue)
+	for i in a:
+		queue.append(i)
+	prvs_cam_pos = hg.Vec3(cam_pos.x, cam_pos.y, cam_pos.z)
+	added_chunks = False
+	added_queue_index = 0
+	added_queue.clear()
+
+def idleChunksQueue():
+	global queue, prvs_cam_pos, cam_pos, chunks, chunk_size, added_chunks, added_queue_index, added_queue
+	diff = len(added_queue) - added_queue_index
+	if diff > 4:
+		for i in range(4):
+			x = added_queue[added_queue_index][0]
+			y = added_queue[added_queue_index][1]
+			z = added_queue[added_queue_index][2]
+			a = loadchunksinfinite(cam_pos, chunks, chunk_size, queue, x, y, z)
+			for i in a:
+				queue.append(i)
+			added_queue_index += 1
+	else:
+		x = added_queue[added_queue_index][0]
+		y = added_queue[added_queue_index][1]
+		z = added_queue[added_queue_index][2]
+		a = loadchunksinfinite(cam_pos, chunks, chunk_size, queue, x, y, z)
+		for i in a:
+			queue.append(i)
+		added_queue_index += 1
+
+chunk_size = 10
 chunk_amount = 2
 seed = random.randint(0,100)
 chunks, queue = generatechunks(chunk_amount)
 modified_blocks = DictionnarySparseMatrix()
-init_state = False
+current_block = 3
 
 # setup scene
 scene = hg.Scene()
@@ -557,9 +624,9 @@ cam = hg.CreateCamera(scene, hg.Mat4.Identity, 0.05, 1000)
 scene.SetCurrentCamera(cam)
 
 lgt = hg.CreateLinearLight(scene, hg.TransformationMat4(hg.Vec3(0, 0, 0), hg.Deg3(19, 59, 0)), hg.Color(
-	1.5, 0.9, 1.2, 1), hg.Color(1.5, 0.9, 1.2, 1), 10, hg.LST_Map, 0.002, hg.Vec4(8, 20, 40, 120))
+	1, 1, 1, 1), hg.Color(1, 1, 1, 1), 10, hg.LST_Map, 0.002, hg.Vec4(8, 20, 40, 120))
 back_lgt = hg.CreatePointLight(scene, hg.TranslationMat4(hg.Vec3(
-	30, 20, 25)), 100, hg.Color(0.8, 0.5, 0.4, 1), hg.Color(0.8, 0.5, 0.4, 1), 0)
+	30, 20, 25)), 100, hg.Color(1, 1, 1, 1), hg.Color(1, 1, 1, 1), 0)
 
 # input devices and fps controller states
 keyboard = hg.Keyboard()
@@ -575,43 +642,25 @@ chunk_index = 0
 
 # main loop
 frame = 0
+chunkp = Process(target=chunksThread)
+movingchunkp = Process(target=movingChunksQueue)
+idlechunkp = Process(target=idleChunksQueue)
+
 
 while not hg.ReadKeyboard().Key(hg.K_Escape):
 	keyboard.Update()
 	mouse.Update()
 	dt = hg.TickClock()
-	if not init_state:
-		hg.FpsController(keyboard, mouse, cam_pos, cam_rot,
+	hg.FpsController(keyboard, mouse, cam_pos, cam_rot,
 					 20 if keyboard.Down(hg.K_LShift) else 8, dt)
 	cam.GetTransform().SetPos(cam_pos)
 	cam.GetTransform().SetRot(cam_rot)
 	scene.Update(dt)
 
-	if chunk_index < len(queue):
-		try:
-			mdl = buildmodel(vtx_layout, modified_blocks, chunk_size, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size))
-			if mdl is not None:
-				mdl_ref = res.AddModel(str(chunk_index), mdl)
-				chunk_node = hg.CreateObject(scene, hg.TranslationMat4(hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size)), mdl_ref, [mat_cube, mat_sand, mat_water])
-				chunks.addValue((queue[chunk_index][0], queue[chunk_index][1], queue[chunk_index][2]), [chunk_index, mdl, hg.Vec3(queue[chunk_index][0] * chunk_size, queue[chunk_index][1] * chunk_size, queue[chunk_index][2] * chunk_size), chunk_node])
-				queue[chunk_index] = []
+	chunkp.run() # run chunk process
 
-		except Exception as e:
-			print(e)
-
-		chunk_index += 1
-
-	else:
-		init_state = False
-
-	if prvs_cam_pos != cam_pos:
-		a = loadchunksaroundplayer(cam_pos, chunks, chunk_size, queue)
-		for i in a:
-			queue.append(i)
-		prvs_cam_pos = hg.Vec3(cam_pos.x, cam_pos.y, cam_pos.z)
-		added_chunks = False
-		added_queue_index = 0
-		added_queue.clear()
+	if prvs_cam_pos != cam_pos: 
+		movingchunkp.run()
 
 	elif not added_chunks:
 		for x in range(-15, 15):
@@ -622,15 +671,8 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 		added_chunks = True
 
 	if added_queue_index < len(added_queue):
-		x = added_queue[added_queue_index][0]
-		y = added_queue[added_queue_index][1]
-		z = added_queue[added_queue_index][2]
-
-		a = loadchunksinfinite(cam_pos, chunks, chunk_size, queue, x, y, z)
-		for i in a:
-			queue.append(i)
-				
-		added_queue_index += 1
+		idlechunkp.run()
+		
 	if keyboard.Pressed(hg.K_Space):
 		rayp0 = cam.GetTransform().GetPos()
 		rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 3
@@ -639,7 +681,18 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	if mouse.Pressed(hg.MB_1):
 		rayp0 = cam.GetTransform().GetPos()
 		rayp1 = rayp0 + hg.GetZ(cam.GetTransform().GetWorld()) * 3
-		addblock(modified_blocks, vtx_layout, chunks, chunk_amount, chunk_size, round(rayp1.x), round(rayp1.y), round(rayp1.z))
+		addblock(modified_blocks, vtx_layout, chunks, chunk_amount, chunk_size, round(rayp1.x), round(rayp1.y), round(rayp1.z), current_block)
+
+	if keyboard.Pressed(hg.K_1):
+		current_block = 0
+	if keyboard.Pressed(hg.K_2):
+		current_block = 1
+	if keyboard.Pressed(hg.K_3):
+		current_block = 2
+	if keyboard.Pressed(hg.K_4):
+		current_block = 3
+	if keyboard.Pressed(hg.K_5):
+		current_block = 4
 
 	vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res, pipeline_aaa, pipeline_aaa_config, frame)
 	# vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res) # without AAA
