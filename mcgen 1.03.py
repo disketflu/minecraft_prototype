@@ -4,6 +4,7 @@ from math import cos, sin, pi, floor, ceil
 import noise
 import numpy as np
 from multiprocessing import Process
+from harfang_gui import HarfangUI as hgui
 
 hg.InputInit()
 hg.WindowSystemInit()
@@ -12,10 +13,15 @@ res_x, res_y = 1920, 1080
 win = hg.RenderInit('Harfang - Minecraft Prototype',
 					res_x, res_y, hg.RF_VSync | hg.RF_MSAA4X)
 
+# include assets before hgui init
+hg.AddAssetsFolder("resources_compiled")
+
+# Setup HarfangGUI
+hgui.init(["default.ttf"], [20], res_x, res_y)
+
 #
 pipeline = hg.CreateForwardPipeline()
 res = hg.PipelineResources()
-hg.AddAssetsFolder("resources_compiled")
 
 # AAA pipeline
 pipeline_aaa_config = hg.ForwardPipelineAAAConfig()
@@ -623,10 +629,10 @@ scene.environment.ambient = hg.Color.Black
 cam = hg.CreateCamera(scene, hg.Mat4.Identity, 0.05, 1000)
 scene.SetCurrentCamera(cam)
 
-lgt = hg.CreateLinearLight(scene, hg.TransformationMat4(hg.Vec3(0, 0, 0), hg.Deg3(19, 59, 0)), hg.Color(
-	1, 1, 1, 1), hg.Color(1, 1, 1, 1), 10, hg.LST_Map, 0.002, hg.Vec4(8, 20, 40, 120))
+# lgt = hg.CreateLinearLight(scene, hg.TransformationMat4(hg.Vec3(0, 0, 0), hg.Deg3(19, 59, 0)), hg.Color(
+# 	1, 1, 1, 1), hg.Color(1, 1, 1, 1), 10, hg.LST_Map, 0.002, hg.Vec4(8, 20, 40, 120))
 back_lgt = hg.CreatePointLight(scene, hg.TranslationMat4(hg.Vec3(
-	30, 20, 25)), 100, hg.Color(1, 1, 1, 1), hg.Color(1, 1, 1, 1), 0)
+	30, 200, 25)), 0, hg.Color(1, 1, 1, 1), hg.Color(1, 1, 1, 1), 0)
 
 # input devices and fps controller states
 keyboard = hg.Keyboard()
@@ -694,12 +700,31 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	if keyboard.Pressed(hg.K_5):
 		current_block = 4
 
-	vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res, pipeline_aaa, pipeline_aaa_config, frame)
-	# vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res) # without AAA
+	# vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res, pipeline_aaa, pipeline_aaa_config, frame)
+	vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res) # without AAA
 
 	vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
 
-	show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb)
+	# show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb)
+	
+	if hgui.begin_frame(dt, mouse, keyboard, res_x, res_y):
+		
+		if hgui.begin_window_2D("my_window",  hg.Vec2(res_x / 2 - 250, res_y - 150), hg.Vec2(500, 150), 1 ):
+
+			hgui.image("grass", "block_images/grass.png", hg.Vec2(80, 80))
+			hgui.same_line()
+			hgui.image("sand", "block_images/sand.png", hg.Vec2(80, 80))
+			hgui.same_line()
+			hgui.image("water", "block_images/water.png", hg.Vec2(80, 80))
+			hgui.same_line()
+			hgui.image("snow", "block_images/snow.png", hg.Vec2(80, 80))
+			hgui.same_line()
+			hgui.image("stone", "block_images/stone.png", hg.Vec2(80, 80))
+
+			hgui.end_window()
+
+		hgui.end_frame(vid)
+
 
 	hg.Touch(0)
 	frame = hg.Frame()

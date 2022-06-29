@@ -1,5 +1,6 @@
 /resources_compiled
 /toolchains
+/__pycache__
 assetc.exe
 glfw3.dll
 lua53.dll
