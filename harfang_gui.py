@@ -429,28 +429,27 @@ class HarfangUISkin:
 												}
 											]
 										},
-					"button_box_border_color": {
+					"widget_border_color": {
 											"type": "color",
 											"layers": [
 												{
 												"operator": "set",
 												"default_state": "idle",
 												"states":{
-													"idle": {"value":  hg.Color(0.8, 0.8, 0.8, 1), "delay": idle_t},
-													"mouse_hover": {"value":  hg.Color(1, 1, 0.8, 1), "delay": idle_t}
+													"idle": {"value":  hg.Color(0.7, 0.7, 0.7, 1), "delay": idle_t},
+													"mouse_hover": {"value":  hg.Color(0.9, 0.9, 0.9, 1), "delay": idle_t}
 													}
 												}
 											]
 										},
-					"button_box_border_thickness": {
+					"widget_border_thickness": {
 											"type": "float",
 											"layers": [
 												{
 												"operator": "set",
 												"default_state": "idle",
 												"states":{
-													"idle": {"value":  1, "delay": idle_t},
-													"mouse_hover": {"value":  3, "delay": hover_t}
+													"idle": {"value":  1, "delay": idle_t}
 													}
 												}
 											]
@@ -615,32 +614,6 @@ class HarfangUISkin:
 												}
 											]
 										},
-					"info_image_border_color": {
-											"type": "color",
-											"layers": [
-												{
-												"operator": "set",
-												"default_state": "idle",
-												"states":{
-													"idle": {"value":  hg.Color(0.8, 0.8, 0.8, 1), "delay": idle_t},
-													"mouse_hover": {"value":  hg.Color(1, 1, 0.8, 1), "delay": idle_t}
-													}
-												}
-											]
-										},
-					"info_image_border_thickness": {
-											"type": "float",
-											"layers": [
-												{
-												"operator": "set",
-												"default_state": "idle",
-												"states":{
-													"idle": {"value":  1, "delay": idle_t},
-													"mouse_hover": {"value":  3, "delay": hover_t}
-													}
-												}
-											]
-										},
 					"texture_box_color": {
 											"type": "color",
 											"layers": [
@@ -794,6 +767,95 @@ class HarfangUISkin:
 													}	
 												}
 											]
+										},
+
+					"radio_button_box_color": {
+											"type": "color",
+											"layers": [
+												{
+												"operator": "set",
+												"default_state": "idle",
+												"states":{
+													"idle": {"value": hg.Color(0.2, 0.2, 0.2, 1), "delay": idle_t},
+													"mouse_hover": {"value": hg.Color(0.2, 0.2, 0.2, 1), "delay": hover_t}
+													}
+												},
+												{
+												"operator": "add",
+												"default_state": "unselected",
+												"states":{
+													"unselected": {"value": hg.Color(0, 0, 0, 0), "delay": hover_t},
+													"selected": {"value": hg.Color(0.2, 0.2, 0.2, 0), "delay": mb_down_t}
+													}
+												}
+											]
+										},
+
+					"radio_image_offset": {
+											"type": "vec3",
+											"linked_value" : {"name": "offset", "operator":"set"},
+											"layers": [
+												{
+												"operator": "set",
+												"default_state": "unselected",
+												"states":{
+													"unselected": {"value": hg.Vec3(0, 0, 0), "delay": idle_t},
+													"selected": {"value": hg.Vec3(0, -10, 0), "delay": hover_t}
+													}
+												}
+											]
+										},
+
+					"radio_button_image_margins": {
+											"type": "vec3",
+											"linked_value" : {"name": "size", "factor":2, "operator":"add"},
+											"layers": [
+												{
+												"operator": "set",
+												"default_state": "idle",
+												"states":{
+													"idle": {"value": hg.Vec3(5, 5, 0), "delay": idle_t},
+													"mouse_hover": {"value": hg.Vec3(5, 5, 0), "delay": hover_t},
+													"MLB_down": {"value": hg.Vec3(5, 5, 0), "delay": mb_down_t}
+													}
+												}
+											]
+										},
+
+					"radio_image_border_color": {
+											"type": "color",
+											"layers": [
+												{
+												"operator": "set",
+												"default_state": "idle",
+												"states":{
+													"idle": {"value":  hg.Color(0.2, 0.2, 0.2, 1), "delay": idle_t},
+													"mouse_hover": {"value":  hg.Color(0.5, 0.5, 0.5, 1), "delay": idle_t}
+													}
+												},
+												{
+												"operator": "add",
+												"default_state": "unselected",
+												"states":{
+													"unselected": {"value":  hg.Color(0,0,0,0), "delay": idle_t},
+													"selected": {"value":  hg.Color(0.3, 0.3, 0.3, 0), "delay": idle_t}
+													}
+												}
+											]
+										},
+
+					"radio_image_border_thickness": {
+											"type": "float",
+											"layers": [
+												{
+												"operator": "set",
+												"default_state": "idle",
+												"states":{
+													"idle": {"value":  1, "delay": idle_t},
+													"mouse_hover": {"value":  1, "delay": hover_t}
+													}
+												}
+											]
 										}
 		}
 
@@ -803,7 +865,7 @@ class HarfangUISkin:
 				"properties": ["window_box_color", "window_box_border_thickness", "window_box_border_color"] #"widget_opacity"
 				},
 			"scrollbar": {
-				"properties": ["scrollbar_thickness", "scrollbar_background_color", "scrollbar_color", "scrollbar_thikness"]
+				"properties": ["scrollbar_thickness", "scrollbar_background_color", "scrollbar_color", "scrollbar_thickness"]
 			},
 			"info_text": {
 				"display_text": "text",
@@ -812,12 +874,12 @@ class HarfangUISkin:
 				},
 			"info_image": {
 				"texture": None,
-				"properties": ["info_image_offset", "info_image_margins", "texture_box_color", "info_image_border_color", "info_image_border_thickness"]
+				"properties": ["info_image_offset", "info_image_margins", "texture_box_color"]
 				},
 			"button_box": {
 				"display_text": "label",
 				"text_size": 1,
-				"properties": ["button_offset", "button_box_color", "button_text_color", "text_size", "button_text_margins", "button_box_border_color", "button_box_border_thickness"]
+				"properties": ["button_offset", "button_box_color", "button_text_color", "text_size", "button_text_margins", "widget_border_thickness", "widget_border_color"]
 				},
 			"label_box": {
 				"display_text": "label",
@@ -826,7 +888,7 @@ class HarfangUISkin:
 				},
 			"image_button": {
 				"texture": None,
-				"properties": ["button_offset", "button_image_margins", "button_box_color", "texture_box_color"]
+				"properties": ["button_offset", "button_image_margins", "button_box_color", "texture_box_color", "widget_border_color", "widget_border_thickness"]
 				},
 			"check_box":{
 				"texture": "hgui_textures/check.png",
@@ -837,10 +899,13 @@ class HarfangUISkin:
 				"input_text": "edit_text",
 				"text_size": 1,
 				"properties": ["text_size", "label_text_margins", "input_box_color", "input_text_color"]
-				}
+				},
+			"radio_image_button": {
+				"texture": None,
+				"properties": ["radio_image_offset","radio_button_image_margins", "radio_button_box_color", "texture_box_color", "radio_image_border_color", "radio_image_border_thickness"]
+				},
 
 		}
-
 		cls.widgets_models = {
 			"window" : {"components": ["window_background"]},
 			"scrollbar_v": {"components": ["scrollbar"], "part_size": 1, "total_size": 3, "scrollbar_position":0, "scrollbar_position_dest": 0, "bar_inertia": 0.25},
@@ -850,7 +915,8 @@ class HarfangUISkin:
 			"button": {"components": ["button_box"]},
 			"image_button": {"components": ["image_button"]},
 			"check_box": {"components": ["check_box", "label_box"]},
-			"input_text": {"components": ["label_box", "input_box"]}
+			"input_text": {"components": ["label_box", "input_box"]},
+			"radio_image_button": {"components": ["radio_image_button"], "radio_idx": 0}
 		}
 
 
@@ -1015,6 +1081,8 @@ class HarfangUI:
 	
 	current_focused_widget = None
 
+	radio_image_button_size = None
+
 	# Widgets containers
 	main_widgets_container_3D = None
 	main_widgets_container_2D = None
@@ -1069,6 +1137,8 @@ class HarfangUI:
 		cls.new_signals = {}
 		cls.current_signals = {}
 		cls.ui_state = HarfangUI.UI_STATE_MAIN
+
+		cls.radio_image_button_size = hg.Vec2(64, 64)
 
 		pos, rot,scale = hg.Vec3(0, 0, 0), hg.Deg3(0, 0, 0), hg.Vec3(1, -1, 1)
 		cls.main_widgets_container_3D = cls.new_widgets_container("Main_container")
@@ -1896,7 +1966,7 @@ class HarfangUI:
 			elif component["type"]=="button_box":
 				HarfangGUISceneGraph.add_box(matrix, cpos, component["size"], component["properties"]["button_box_color"]["value"] * opacity)
 				HarfangGUISceneGraph.add_text(matrix, cpos + component["size"] / 2, component["text_size"], component[component["display_text"]], cls.current_font_id, component["properties"]["button_text_color"]["value"] * opacity)
-				HarfangGUISceneGraph.add_box_border(matrix, cpos, component["size"], component["properties"]["button_box_border_thickness"]["value"], component["properties"]["button_box_border_color"]["value"] )
+				HarfangGUISceneGraph.add_box_border(matrix, cpos, component["size"], component["properties"]["widget_border_thickness"]["value"], component["properties"]["widget_border_color"]["value"] )
 			
 			elif component["type"] == "info_text":
 				HarfangGUISceneGraph.add_text(matrix, cpos + component["size"] / 2, component["text_size"], component[component["display_text"]], cls.current_font_id, component["properties"]["info_text_color"]["value"] * opacity)
@@ -1905,11 +1975,18 @@ class HarfangUI:
 				margins = component["properties"]["button_image_margins"]["value"]
 				HarfangGUISceneGraph.add_box(matrix, cpos, component["size"], component["properties"]["button_box_color"]["value"] * opacity)
 				HarfangGUISceneGraph.add_texture_box(matrix, cpos + margins, component["size"] - margins * 2, component["properties"]["texture_box_color"]["value"] * opacity, component["texture"])
+				HarfangGUISceneGraph.add_box_border(matrix, cpos, component["size"], component["properties"]["widget_border_thickness"]["value"], component["properties"]["widget_border_color"]["value"] )
 			
+			elif component["type"] == "radio_image_button":
+				margins = component["properties"]["radio_button_image_margins"]["value"]
+				HarfangGUISceneGraph.add_box(matrix, cpos, component["size"], component["properties"]["radio_button_box_color"]["value"] * opacity)
+				HarfangGUISceneGraph.add_texture_box(matrix, cpos + margins, component["size"] - margins * 2, component["properties"]["texture_box_color"]["value"] * opacity, component["texture"])
+				HarfangGUISceneGraph.add_box_border(matrix, cpos, component["size"], component["properties"]["radio_image_border_thickness"]["value"], component["properties"]["radio_image_border_color"]["value"] )
+			
+
 			elif component["type"] == "info_image":
 				margins = component["properties"]["info_image_margins"]["value"]
 				HarfangGUISceneGraph.add_texture_box(matrix, cpos + margins, component["size"] - margins * 2, component["properties"]["texture_box_color"]["value"] * opacity, component["texture"])
-				HarfangGUISceneGraph.add_box_border(matrix, cpos, component["size"], component["properties"]["info_image_border_thickness"]["value"], component["properties"]["info_image_border_color"]["value"] )
 
 			elif component["type"] == "check_box":
 				margins = component["properties"]["checkbox_margins"]["value"]
@@ -2326,4 +2403,33 @@ class HarfangUI:
 	@classmethod
 	def scrollbar_h(cls, widget_id, width, height, part_size, total_size, scroll_position = None, flag_reset = False):
 		return cls.scrollbar(widget_id, width, height, part_size, total_size, scroll_position, flag_reset, True)
+
+	@classmethod
+	def radio_image_button(cls, widget_id, texture_path, current_idx, radio_idx, image_size: hg.Vec2 = None):
+		widget = cls.get_widget("radio_image_button", widget_id)
 		
+		widget["radio_idx"] = radio_idx
+		if image_size is None:
+			image_size = cls.radio_image_button_size
+		else:
+			cls.radio_image_button_size = image_size
+
+		mouse_click = False
+		if "mouse_click" in cls.current_signals and widget_id in cls.current_signals["mouse_click"]:
+			current_idx = widget["radio_idx"]
+			mouse_click = True
+		
+		if current_idx == widget["radio_idx"]:
+			if "unselected" in widget["states"]:
+				cls.set_widget_state(widget, "selected")
+		else:
+			if "selected" in widget["states"]:
+				cls.set_widget_state(widget,"unselected")
+
+		widget["position"] = cls.get_cursor_position()
+		widget["components"]["radio_image_button"]["size"].x = image_size.x
+		widget["components"]["radio_image_button"]["size"].y = image_size.y
+		widget["components"]["radio_image_button"]["texture"] = texture_path
+		cls.update_widget_components(widget)
+		cls.update_cursor(widget)
+		return mouse_click, current_idx

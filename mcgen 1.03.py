@@ -105,7 +105,7 @@ def buildmodel(vtx_layout, world, chunk_size, chunk_pos):
 					elif v < 0.25:
 						material = 4 # rock
 					correcty = round(v * 100)
-					if y == correcty or y == correcty + 1 or y == correcty - 1:
+					if y == correcty or y == correcty + 1 or y == correcty - 1 or y == correcty + 2 or y == correcty - 2:
 						block_data = [True, material]
 					else:
 						block_data = [False, 0]
@@ -700,26 +700,26 @@ while not hg.ReadKeyboard().Key(hg.K_Escape):
 	if keyboard.Pressed(hg.K_5):
 		current_block = 4
 
-	# vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res, pipeline_aaa, pipeline_aaa_config, frame)
-	vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res) # without AAA
+	vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res, pipeline_aaa, pipeline_aaa_config, frame)
+	# vid, pass_ids = hg.SubmitSceneToPipeline(0, scene, hg.IntRect(0, 0, res_x, res_y), True, pipeline, res) # without AAA
 
 	vid_scene_opaque = hg.GetSceneForwardPipelinePassViewId(pass_ids, hg.SFPP_Opaque)
 
-	# show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb)
+	show_preview_block(cam, vtx_layout_lines, vid_scene_opaque, pos_rgb)
 	
 	if hgui.begin_frame(dt, mouse, keyboard, res_x, res_y):
 		
-		if hgui.begin_window_2D("my_window",  hg.Vec2(res_x / 2 - 250, res_y - 150), hg.Vec2(500, 150), 1 ):
+		if hgui.begin_window_2D("my_window",  hg.Vec2(res_x / 2 - 250, res_y - 150), hg.Vec2(460, 120), 1 ):
 
-			hgui.image("grass", "block_images/grass.png", hg.Vec2(80, 80))
+			_, current_block = hgui.radio_image_button("rib_0","block_images/grass.png", current_block, 0, hg.Vec2(80, 80))
 			hgui.same_line()
-			hgui.image("sand", "block_images/sand.png", hg.Vec2(80, 80))
+			_, current_block = hgui.radio_image_button("rib_1","block_images/sand.png", current_block, 1)
 			hgui.same_line()
-			hgui.image("water", "block_images/water.png", hg.Vec2(80, 80))
+			_, current_block = hgui.radio_image_button("rib_2","block_images/water.png", current_block, 2)
 			hgui.same_line()
-			hgui.image("snow", "block_images/snow.png", hg.Vec2(80, 80))
+			_, current_block = hgui.radio_image_button("rib_3","block_images/snow.png", current_block, 3)
 			hgui.same_line()
-			hgui.image("stone", "block_images/stone.png", hg.Vec2(80, 80))
+			_, current_block = hgui.radio_image_button("rib_4","block_images/stone.png", current_block, 4)
 
 			hgui.end_window()
 
