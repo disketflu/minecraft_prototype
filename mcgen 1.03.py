@@ -41,11 +41,11 @@ pos_rgb = hg.LoadProgramFromFile('resources_compiled/shaders/pos_rgb')
 # create materials
 prg_ref = hg.LoadPipelineProgramRefFromFile('resources_compiled/core/shader/pbr.hps', res, hg.GetForwardPipelineInfo())
 
-mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 225, 26), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
-mat_water = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 205, 240), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.08, 0.08))
-mat_sand = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(250, 225, 6), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 1))
-mat_snow = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(255, 255, 255), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.8, 0.1))
-mat_rock = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(250, 250, 250), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 1, 1))
+mat_cube = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 225, 26), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.5, 0.25)) # default green
+mat_water = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(20, 205, 240), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.08, 0.8)) # water = metalness
+mat_sand = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(250, 225, 6), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.658, 0.1)) # yellow sand
+mat_snow = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(220, 220, 220), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.8, 0.5)) # snow = half metalness
+mat_rock = hg.CreateMaterial(prg_ref, 'uBaseOpacityColor', hg.Vec4I(128, 128, 128), 'uOcclusionRoughnessMetalnessColor', hg.Vec4(1, 0.9, 0.2)) # rough grey 
 
 #### TERRAIN GENERATION SETTINGS ####
 scale = 100
@@ -631,8 +631,8 @@ scene.SetCurrentCamera(cam)
 
 # lgt = hg.CreateLinearLight(scene, hg.TransformationMat4(hg.Vec3(0, 0, 0), hg.Deg3(19, 59, 0)), hg.Color(
 # 	1, 1, 1, 1), hg.Color(1, 1, 1, 1), 10, hg.LST_Map, 0.002, hg.Vec4(8, 20, 40, 120))
-back_lgt = hg.CreatePointLight(scene, hg.TranslationMat4(hg.Vec3(
-	30, 200, 25)), 0, hg.Color(1, 1, 1, 1), hg.Color(1, 1, 1, 1), 0)
+# back_lgt = hg.CreatePointLight(scene, hg.TranslationMat4(hg.Vec3(
+# 	30, 200, 25)), 0, hg.Color(1, 1, 1, 1), hg.Color(1, 1, 1, 1), 0)
 
 # input devices and fps controller states
 keyboard = hg.Keyboard()

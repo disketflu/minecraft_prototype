@@ -27,14 +27,14 @@
 		"fog_far": 0.0,
 		"fog_near": 0.0,
 		"probe": {
-			"irradiance_map": "industrial_sunset_02_1k.hdr.irradiance",
+			"irradiance_map": "probes/blue_sky.hdr.irradiance",
 			"parallax": 0.0,
 			"pos": [
 				0.0,
 				0.0,
 				0.0
 			],
-			"radiance_map": "industrial_sunset_02_1k.hdr.radiance",
+			"radiance_map": "probes/blue_sky.hdr.radiance",
 			"rot": [
 				0.0,
 				0.0,
@@ -49,5 +49,69 @@
 		}
 	},
 	"key_values": null,
-	"nodes": null
+	"lights": [
+		{
+			"diffuse": [
+				255,
+				214,
+				135,
+				255
+			],
+			"diffuse_intensity": 10.0,
+			"inner_angle": 0.5235987901687622,
+			"outer_angle": 0.7853981852531433,
+			"priority": 0.0,
+			"pssm_split": [
+				5.0,
+				25.0,
+				100.0,
+				400.0
+			],
+			"radius": 0.0,
+			"shadow_bias": 9.999999747378752e-05,
+			"shadow_type": "map",
+			"specular": [
+				255,
+				214,
+				135,
+				255
+			],
+			"specular_intensity": 10.0,
+			"type": "linear"
+		}
+	],
+	"nodes": [
+		{
+			"components": [
+				0,
+				4294967295,
+				4294967295,
+				0,
+				4294967295
+			],
+			"disabled": false,
+			"idx": 0,
+			"name": "sun"
+		}
+	],
+	"transforms": [
+		{
+			"parent": null,
+			"pos": [
+				0.0,
+				0.0,
+				0.0
+			],
+			"rot": [
+				45.0,
+				45.0,
+				0.0
+			],
+			"scl": [
+				1.0,
+				1.0,
+				1.0
+			]
+		}
+	]
 }
