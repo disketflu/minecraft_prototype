@@ -339,20 +339,19 @@ def deleteblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z):
 			chunktoreload[3].GetObject().SetModelRef(mdl_ref)
 			chunktoreload[1] = mdl
 
-
 def addblock(world, vtx_layout, chunks, chunk_amount, chunk_size, x, y, z, blockvalue):
 	chunktoreload = findchunkfromcoordinates(x, y, z, chunks, chunk_size, chunk_amount)
 
 	if chunktoreload != None:
-		if world.readValue((x, y, z)) == None:
-			world.addValue((x, y, z), [True, blockvalue])
-			mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
-			if mdl is not None:
-				mdl_ref = chunktoreload[3].GetObject().GetModelRef()
-				res.DestroyModel(mdl_ref)
-				mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
-				chunktoreload[3].GetObject().SetModelRef(mdl_ref)
-				chunktoreload[1] = mdl
+		world.addValue((x, y, z), [True, blockvalue])
+		mdl = buildmodel(vtx_layout, world, chunk_size, chunktoreload[2])
+		if mdl is not None:
+			mdl_ref = chunktoreload[3].GetObject().GetModelRef()
+			res.DestroyModel(mdl_ref)
+			mdl_ref = res.AddModel(str(random.uniform(0, 5000)), mdl)
+			chunktoreload[3].GetObject().SetModelRef(mdl_ref)
+			chunktoreload[1] = mdl
+
 
 	elif world.readValue((x, y, z)) == None:
 		world.addValue((x, y, z), [True, blockvalue])
