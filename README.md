@@ -1,4 +1,4 @@
-# HARFANG® Minecraft Prototype
+# HARFANG® Voxel World Prototype
 
 This **prototype** demonstrates the usage of Minecraft Mechanics (chunks, procedural world generation) using the HARFANG API in **Python**.
 
